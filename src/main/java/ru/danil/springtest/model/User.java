@@ -34,7 +34,7 @@ public class User {
 
     public void updateOrders(List<Order> newOrders) {
         this.orders.removeIf(thisOrder -> newOrders.stream()
-                .filter(n -> n.getId() != null)
+                .filter(newOrder -> newOrder.getId() != null)
                 .noneMatch(newOrder -> newOrder.getId().equals(thisOrder.getId())));
 
         for(Order newOrder : newOrders){

@@ -1,7 +1,7 @@
 openapi: "3.1.0"
 info:
   version: 1.0.0
-  title: Test 1
+  title: SpringTech
 servers:
   - url: http://localhost:8080
 paths:
@@ -10,7 +10,7 @@ paths:
       summary: Get username by id with his orders
       operationId: getUsernameById
       tags:
-        - user
+        - user and orders
       parameters:
         - name: id
           in: path
@@ -33,12 +33,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  /create:
+  /user/create:
     post:
       summary: Create new user
       operationId: createNewUser
       tags:
-        - user
+        - user and orders
       requestBody:
         required: true
         content:
@@ -59,12 +59,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /update/{id}:
+  /user/update/{id}:
     patch:
       summary: Update username
       operationId: usernameUpdate
       tags:
-        - user
+        - user and orders
       parameters:
         - name: id
           in: path
@@ -98,12 +98,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /delete/{id}:
+  /user/delete/{id}:
     delete:
       summary: Delete User
       operationId: deleteUser
       tags:
-        - user
+        - user and orders
       parameters:
         - name: id
           in: path
