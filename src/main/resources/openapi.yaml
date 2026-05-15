@@ -1,0 +1,161 @@
+openapi: "3.1.0"
+info:
+  version: 1.0.0
+  title: Test 1
+servers:
+  - url: http://localhost:8080
+paths:
+  /user/{id}:
+    get:
+      summary: Get username by id with his orders
+      operationId: getUsernameById
+      tags:
+        - user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "ID пользовзателя"
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: get username
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDTO"
+        '404':
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /create:
+    post:
+      summary: Create new user
+      operationId: createNewUser
+      tags:
+        - user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserDTO'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /update/{id}:
+    patch:
+      summary: Update username
+      operationId: usernameUpdate
+      tags:
+        - user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "ID пользовзателя"
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserDTO'
+      responses:
+        '200':
+          description: User was updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDTO"
+        '404':
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /delete/{id}:
+    delete:
+      summary: Delete User
+      operationId: deleteUser
+      tags:
+        - user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "ID пользовзателя"
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: User was deleted
+        '404':
+          description: "User not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    UserDTO:
+      required:
+        - username
+        - orders
+      properties:
+        username:
+          type: string
+          minLength: 2
+          maxLength: 30
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderDTO'
+          default: []
+    OrderDTO:
+      required:
+        - orderDetails
+      properties:
+        orderDetails:
+          type: string
+          minLength: 2
+          maxLength: 30
+          example: "Вишня"
+        id:
+          readOnly: true
+          type: string
+          format: uuid
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        code:
+          type: integer

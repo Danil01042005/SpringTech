@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: SpringTest
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: 123456
+    url: jdbc:postgresql://localhost:5432/postgres
+
+    jpa:
+      database-platform: org.hibernate.dialect.PostgreSQLDialect
+      hibernate:
+        ddl-auto: validate
+
+  flyway:
+    default-schema: test
