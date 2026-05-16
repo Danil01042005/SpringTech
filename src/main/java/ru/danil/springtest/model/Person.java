@@ -29,4 +29,9 @@ public class Person {
 
     @OneToOne(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
     private Passport passport;
+
+    public void addPassport() {
+            this.passport.setPerson(this);
+    }
+
 }

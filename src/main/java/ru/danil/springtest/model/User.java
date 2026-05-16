@@ -32,6 +32,10 @@ public class User {
     @OneToMany(mappedBy = "owner", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Order> orders;
 
+    public void addOwnerForOrders(){
+            this.orders.forEach(order -> order.setOwner(this));
+    }
+
     public void updateOrders(List<Order> newOrders) {
         this.orders.removeIf(thisOrder -> newOrders.stream()
                 .filter(newOrder -> newOrder.getId() != null)

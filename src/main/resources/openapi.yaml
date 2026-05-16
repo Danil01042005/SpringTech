@@ -5,10 +5,6 @@ info:
 servers:
   - url: http://localhost:8080
 
-tags:
-  - name: user and orders
-  - name: Person and passport
-
 paths:
   /user/{id}:
     get:
@@ -65,7 +61,7 @@ paths:
   /user/update/{id}:
     put:
       summary: Update user
-      operationId: usernameUpdate
+      operationId: userUpdate
       tags:
         - user and orders
       parameters:
@@ -130,7 +126,7 @@ paths:
       summary: Get Person with his passport
       operationId: getPerson
       tags:
-        - Person and passport
+        - person and passport
       parameters:
         - name: id
           in: path
@@ -157,7 +153,7 @@ paths:
       summary: Create new person
       operationId: createNewPerson
       tags:
-        - Person and passport
+        - person and passport
       requestBody:
         required: true
         content:
@@ -182,7 +178,7 @@ paths:
       summary: Update person
       operationId: personUpdate
       tags:
-        - Person and passport
+        - person and passport
       parameters:
         - name: id
           in: path
@@ -221,7 +217,7 @@ paths:
       summary: Delete Person
       operationId: deletePerson
       tags:
-        - Person and passport
+        - person and passport
       parameters:
         - name: id
           in: path
