@@ -4,6 +4,11 @@ info:
   title: SpringTech
 servers:
   - url: http://localhost:8080
+
+tags:
+  - name: user and orders
+  - name: Person and passport
+
 paths:
   /user/{id}:
     get:
@@ -32,7 +37,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-
   /user/create:
     post:
       summary: Create new user
@@ -58,10 +62,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-
   /user/update/{id}:
-    patch:
-      summary: Update username
+    put:
+      summary: Update user
       operationId: usernameUpdate
       tags:
         - user and orders
@@ -122,6 +125,121 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /person/{id}:
+    get:
+      summary: Get Person with his passport
+      operationId: getPerson
+      tags:
+        - Person and passport
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: id человека
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: get person
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonDTO"
+        '404':
+          description: "Person not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /person/create:
+    post:
+      summary: Create new person
+      operationId: createNewPerson
+      tags:
+        - Person and passport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonDTO'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonDTO'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /person/update/{id}:
+    put:
+      summary: Update person
+      operationId: personUpdate
+      tags:
+        - Person and passport
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "ID человека"
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonDTO'
+      responses:
+        '200':
+          description: Person was updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PersonDTO"
+        '404':
+          description: "Person not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /person/delete/{id}:
+    delete:
+      summary: Delete Person
+      operationId: deletePerson
+      tags:
+        - Person and passport
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "ID человека"
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Person was deleted
+        '404':
+          description: "Person not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     UserDTO:
@@ -129,6 +247,10 @@ components:
         - username
         - orders
       properties:
+        id:
+          readOnly: true
+          type: string
+          format: uuid
         username:
           type: string
           minLength: 2
@@ -147,6 +269,41 @@ components:
           minLength: 2
           maxLength: 30
           example: "Вишня"
+        id:
+          readOnly: true
+          type: string
+          format: uuid
+
+    PersonDTO:
+      required:
+        - fullName
+        - age
+        - passport
+      properties:
+        id:
+          readOnly: true
+          type: string
+          format: uuid
+        fullName:
+          type: string
+          minLength: 4
+          maxLength: 40
+          example: "Иванов Иван Иванович"
+        age:
+          type: integer
+          minimum: 16
+          example: 16
+        passport:
+          $ref: '#/components/schemas/PassportDTO'
+    PassportDTO:
+      required:
+        - passportNumber
+      properties:
+        passportNumber:
+          type: string
+          minLength: 6
+          maxLength: 6
+          example: "123456"
         id:
           readOnly: true
           type: string

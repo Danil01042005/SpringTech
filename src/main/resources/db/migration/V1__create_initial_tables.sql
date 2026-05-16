@@ -8,5 +8,13 @@ CREATE TABLE IF NOT EXISTS orders(
     user_id uuid REFERENCES users(id) ON DELETE SET NULL,
     order_details TEXT
 );
-INSERT INTO users (username)
-VALUES ('danil_ivanov');
+CREATE TABLE IF NOT EXISTS person(
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    full_name TEXT,
+    age integer CHECK ( age >= 16 )
+);
+CREATE TABLE IF NOT EXISTS passport(
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    passport_number TEXT NOT NULL CHECK (length(passport_number) = 6),
+    person_id uuid UNIQUE REFERENCES person(id) ON DELETE CASCADE
+)
