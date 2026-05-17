@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -13,18 +14,18 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "passports", schema = "test")
-public class Passport {
+@Table(name = "movies", schema = "test")
+public class Movie {
 
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "passport_number")
-    private int passportNumber;
+    @Column(name = "name")
+    private String name;
 
-    @OneToOne
-    @JoinColumn(name = "person_id", referencedColumnName = "id")
-    private Person person;
+    @ManyToMany(mappedBy = "movies")
+    private List<Actor> actors;
+
 }

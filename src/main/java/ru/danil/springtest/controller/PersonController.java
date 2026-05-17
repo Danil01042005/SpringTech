@@ -21,7 +21,7 @@ public class PersonController implements PersonAndPassportApi {
     private final PersonService personService;
 
     @Override
-    public ResponseEntity<PersonDTO> createNewPerson(@Valid PersonDTO personDTO) {
+    public ResponseEntity<PersonDTO> createPerson(@Valid PersonDTO personDTO) {
         Person person = personService.createNewPerson(convertToPerson(personDTO));
         return ResponseEntity.status(HttpStatus.CREATED).body(converToPersonDTO(person));
     }

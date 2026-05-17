@@ -1,4 +1,4 @@
-openapi: "3.1.0"
+openapi: 3.1.0
 info:
   version: 1.0.0
   title: SpringTech
@@ -6,37 +6,10 @@ servers:
   - url: http://localhost:8080
 
 paths:
-  /user/{id}:
-    get:
-      summary: Get username by id with his orders
-      operationId: getUsernameById
-      tags:
-        - user and orders
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: "ID пользовзателя"
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: get username
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserDTO"
-        '404':
-          description: "User not found"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
   /user/create:
     post:
-      summary: Create new user
-      operationId: createNewUser
+      summary: Create user
+      operationId: createUser
       tags:
         - user and orders
       requestBody:
@@ -47,13 +20,40 @@ paths:
               $ref: '#/components/schemas/UserDTO'
       responses:
         '201':
-          description: Created
+          description: Created was successful
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserDTO'
         '400':
           description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /user/{id}:
+    get:
+      summary: Get user
+      operationId: getUsernameById
+      tags:
+        - user and orders
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID пользовзателя
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: user was founded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+        '404':
+          description: User not found
           content:
             application/json:
               schema:
@@ -68,7 +68,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: "ID пользовзателя"
+          description: ID пользовзателя
           schema:
             type: string
             format: uuid
@@ -84,13 +84,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserDTO"
+                $ref: '#/components/schemas/UserDTO'
         '404':
-          description: "User not found"
+          description: User not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: '#/components/schemas/ErrorResponse'
         '400':
           description: Invalid input
           content:
@@ -107,51 +107,24 @@ paths:
         - name: id
           in: path
           required: true
-          description: "ID пользовзателя"
+          description: ID пользовзателя
           schema:
             type: string
             format: uuid
       responses:
         '204':
-          description: User was deleted
+          description: User deleted
         '404':
-          description: "User not found"
+          description: User not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: '#/components/schemas/ErrorResponse'
 
-  /person/{id}:
-    get:
-      summary: Get Person with his passport
-      operationId: getPerson
-      tags:
-        - person and passport
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: id человека
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: get person
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PersonDTO"
-        '404':
-          description: "Person not found"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
   /person/create:
     post:
-      summary: Create new person
-      operationId: createNewPerson
+      summary: Create person
+      operationId: createPerson
       tags:
         - person and passport
       requestBody:
@@ -173,6 +146,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /person/{id}:
+    get:
+      summary: Get Person
+      operationId: getPerson
+      tags:
+        - person and passport
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: id человека
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: person
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonDTO'
+        '404':
+          description: Person not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /person/update/{id}:
     put:
       summary: Update person
@@ -183,7 +183,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: "ID человека"
+          description: ID человека
           schema:
             type: string
             format: uuid
@@ -195,17 +195,17 @@ paths:
               $ref: '#/components/schemas/PersonDTO'
       responses:
         '200':
-          description: Person was updated
+          description: Person updated
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PersonDTO"
+                $ref: '#/components/schemas/PersonDTO'
         '404':
-          description: "Person not found"
+          description: Person not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: '#/components/schemas/ErrorResponse'
         '400':
           description: Invalid input
           content:
@@ -222,19 +222,134 @@ paths:
         - name: id
           in: path
           required: true
-          description: "ID человека"
+          description: ID человека
           schema:
             type: string
             format: uuid
       responses:
         '204':
-          description: Person was deleted
+          description: Person deleted
         '404':
-          description: "Person not found"
+          description: Person not found
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /actor/create:
+    post:
+      summary: Create actor
+      operationId: createActor
+      tags:
+        - actors and films
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActorDTO'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActorDTO'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /actor/{id}:
+    get:
+      summary: Get Actor
+      operationId: getActor
+      tags:
+        - actors and films
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: id актера
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: get actor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActorDTO'
+        '404':
+          description: Actor not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /actor/update/{id}:
+    put:
+      summary: Update actor
+      operationId: actorUpdate
+      tags:
+        - actors and films
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID актера
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActorDTO'
+      responses:
+        '200':
+          description: Actor updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActorDTO'
+        '404':
+          description: Actor not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /actor/delete/{id}:
+    delete:
+      summary: Delete actor
+      operationId: deleteActor
+      tags:
+        - actors and films
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID актера
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Actor deleted
+        '404':
+          description: Actor not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 components:
   schemas:
@@ -264,7 +379,7 @@ components:
           type: string
           minLength: 2
           maxLength: 30
-          example: "Вишня"
+          example: Вишня
         id:
           readOnly: true
           type: string
@@ -284,7 +399,7 @@ components:
           type: string
           minLength: 4
           maxLength: 40
-          example: "Иванов Иван Иванович"
+          example: Иванов Иван Иванович
         age:
           type: integer
           minimum: 16
@@ -299,11 +414,47 @@ components:
           type: string
           minLength: 6
           maxLength: 6
-          example: "123456"
+          example: 123456
         id:
           readOnly: true
           type: string
           format: uuid
+
+    ActorDTO:
+      required:
+        - name
+        - age
+        - movies
+      properties:
+        id:
+          readOnly: true
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 4
+          example: Ivan Ivan Ivanovich
+        age:
+          type: integer
+          minimum: 16
+          example: 16
+        movies:
+          type: array
+          items:
+            $ref: '#/components/schemas/MovieDTO'
+          default: []
+    MovieDTO:
+      required:
+        - name
+      properties:
+        id:
+          readOnly: true
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 4
+          example: Gorko 2
 
     ErrorResponse:
       type: object

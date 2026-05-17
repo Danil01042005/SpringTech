@@ -13,7 +13,7 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "Person", schema = "test")
+@Table(name = "Persons", schema = "test")
 public class Person {
 
     @Id

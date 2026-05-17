@@ -29,7 +29,7 @@ public class UserController implements UserAndOrdersApi {
 
 
     @Override
-    public ResponseEntity<UserDTO> createNewUser(@Valid UserDTO userDTO) {
+    public ResponseEntity<UserDTO> createUser(@Valid UserDTO userDTO) {
         User user = userService.createNewUser(convertToUser(userDTO));
         return ResponseEntity.status(HttpStatus.CREATED).body(convertToUserDTO(user));
     }
