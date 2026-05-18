@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,6 +27,6 @@ public class Movie {
     private String name;
 
     @ManyToMany(mappedBy = "movies")
-    private List<Actor> actors;
+    private List<Actor> actors = new ArrayList<>();
 
 }

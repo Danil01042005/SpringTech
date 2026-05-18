@@ -30,7 +30,7 @@ public class Person {
     @OneToOne(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
     private Passport passport;
 
-    public void addPassport() {
+    public void linkPassport() {
             this.passport.setPerson(this);
     }
 

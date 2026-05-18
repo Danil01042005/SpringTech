@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,11 +29,26 @@ public class Actor {
     @Column(name = "age")
     private int age;
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "actors_movies",
             joinColumns = @JoinColumn(name = "actor_id"),
-            inverseJoinColumns = @JoinColumn(name = "movie_id")
+            inverseJoinColumns = @JoinColumn(name = "movie_id"),
+            schema = "test"
     )
-    private List<Movie> movies;
+    private List<Movie> movies = new ArrayList<>();
+
+    public void linkMovies(){
+        this.movies.forEach(movie -> movie.getActors().add(this));
+    }
+
+    public void updateMovies(List<Movie> moviesOfActor) {
+        this.movies.removeIf(thisMovie -> !moviesOfActor.contains(thisMovie));
+
+        for (Movie movie : moviesOfActor) {
+            if(!this.getMovies().contains(movie)){
+                this.movies.add(movie);
+            }
+        }
+    }
 }

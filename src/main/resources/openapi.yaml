@@ -424,7 +424,6 @@ components:
       required:
         - name
         - age
-        - movies
       properties:
         id:
           readOnly: true
@@ -442,15 +441,17 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MovieDTO'
-          default: []
+          default:
+            - id: ""
+              name: "Gorko 2"
     MovieDTO:
       required:
         - name
       properties:
         id:
-          readOnly: true
           type: string
           format: uuid
+          example: ""
         name:
           type: string
           minLength: 4

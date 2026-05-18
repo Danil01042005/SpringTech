@@ -18,12 +18,12 @@ public class PersonService {
     private final PersonRepository personRepository;
 
     public Person getPerson(UUID id) {
-        return personRepository.findById(id).orElseThrow(() -> new UserExeption("Челове с таким именем не найден", HttpStatus.NOT_FOUND));
+        return personRepository.findById(id).orElseThrow(() -> new UserExeption("Человек с таким айди не найден", HttpStatus.NOT_FOUND));
     }
 
     @Transactional
-    public Person createNewPerson(Person person){
-        person.addPassport();
+    public Person createPerson(Person person){
+        person.linkPassport();
         return personRepository.save(person);
     }
 
@@ -36,8 +36,10 @@ public class PersonService {
     public Person personUpdate(UUID id , Person updatedPerson) {
         Person person = getPerson(id);
         person.setAge(updatedPerson.getAge());
-        person.getPassport().setPassportNumber(updatedPerson.getPassport().getPassportNumber());
         person.setFullName(updatedPerson.getFullName());
+        if (updatedPerson.getPassport() != null) {
+            person.getPassport().setPassportNumber(updatedPerson.getPassport().getPassportNumber());
+        }
         return personRepository.save(person);
     }
 }

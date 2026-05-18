@@ -30,15 +30,14 @@ public class UserController implements UserAndOrdersApi {
 
     @Override
     public ResponseEntity<UserDTO> createUser(@Valid UserDTO userDTO) {
-        User user = userService.createNewUser(convertToUser(userDTO));
+        User user = userService.createUser(convertToUser(userDTO));
         return ResponseEntity.status(HttpStatus.CREATED).body(convertToUserDTO(user));
     }
 
 
     @Override
     public ResponseEntity<UserDTO> userUpdate(UUID id,@Valid UserDTO userDTO) {
-        userService.userUpdate(id, convertToUser(userDTO));
-        return ResponseEntity.ok(userDTO);
+        return ResponseEntity.ok(convertToUserDTO(userService.userUpdate(id, convertToUser(userDTO))));
     }
 
     @Override

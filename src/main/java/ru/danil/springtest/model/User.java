@@ -32,7 +32,7 @@ public class User {
     @OneToMany(mappedBy = "owner", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Order> orders;
 
-    public void addOwnerForOrders(){
+    public void linkOrders(){
             this.orders.forEach(order -> order.setOwner(this));
     }
 
