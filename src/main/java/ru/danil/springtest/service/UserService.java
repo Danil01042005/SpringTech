@@ -9,6 +9,9 @@ import ru.danil.springtest.model.User;
 import ru.danil.springtest.repository.UserRepository;
 import ru.danil.springtest.utill.UserExeption;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -31,16 +34,21 @@ public class UserService {
 
     @Transactional
     public User userUpdate(UUID id, User updatedUser) {
-        User user = getUsernameById(id);
-        user.setUsername(updatedUser.getUsername());
         if(updatedUser.getOrders() != null) {
+            Set<UUID> ids = new HashSet<>();
             for (Order updatedOrder : updatedUser.getOrders()){
                 if(updatedOrder.getId() != null) {
-                    orderService.getOrderById(updatedOrder.getId());
+                    ids.add(updatedOrder.getId());
                 }
             }
-            user.updateOrders(updatedUser.getOrders());
+            List<Order> ordersOfUser = orderService.findByIdIn(ids);
+            if (ordersOfUser.size() != ids.size()) {
+                throw new UserExeption("Неправльно ввели айди", HttpStatus.BAD_REQUEST);
+            }
         }
+        User user = getUsernameById(id);
+        user.updateOrders(updatedUser.getOrders());
+        user.setUsername(updatedUser.getUsername());
         return userRepository.save(user);
     }
 
