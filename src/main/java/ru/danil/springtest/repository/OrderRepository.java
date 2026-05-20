@@ -10,5 +10,5 @@ import java.util.UUID;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, UUID> {
 
-    List<Order> findByidIn(Iterable<UUID> ids);
+    List<Order> findByIdIn(Iterable<UUID> ids);
 }

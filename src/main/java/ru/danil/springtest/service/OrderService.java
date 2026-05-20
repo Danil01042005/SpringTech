@@ -17,6 +17,6 @@ public class OrderService {
     private final OrderRepository orderRepository;
 
     public List<Order> findByIdIn(Iterable<UUID> ids) {
-        return orderRepository.findByidIn(ids);
+        return orderRepository.findByIdIn(ids);
     }
 }

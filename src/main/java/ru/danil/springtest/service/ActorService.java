@@ -39,7 +39,7 @@ public class ActorService {
     }
 
     public Actor getActorById(UUID id) {
-        return actorRepository.findById(id).orElseThrow(() -> new UserExeption("Актер с таким айди не найде", HttpStatus.NOT_FOUND));
+        return actorRepository.findByIdWithMovies(id).orElseThrow(() -> new UserExeption("Актер с таким айди не найде", HttpStatus.NOT_FOUND));
     }
 
     @Transactional

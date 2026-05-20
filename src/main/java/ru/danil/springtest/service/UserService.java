@@ -9,10 +9,7 @@ import ru.danil.springtest.model.User;
 import ru.danil.springtest.repository.UserRepository;
 import ru.danil.springtest.utill.UserExeption;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -34,7 +31,8 @@ public class UserService {
 
     @Transactional
     public User userUpdate(UUID id, User updatedUser) {
-        if(updatedUser.getOrders() != null) {
+        User user = userRepository.findByIdWithOrders(id).orElseThrow(() -> new UserExeption("Пользователь с таким id не найден", HttpStatus.NOT_FOUND));
+        if(updatedUser.getOrders() != null && !updatedUser.getOrders().isEmpty()) {
             Set<UUID> ids = new HashSet<>();
             for (Order updatedOrder : updatedUser.getOrders()){
                 if(updatedOrder.getId() != null) {
@@ -45,9 +43,8 @@ public class UserService {
             if (ordersOfUser.size() != ids.size()) {
                 throw new UserExeption("Неправльно ввели айди", HttpStatus.BAD_REQUEST);
             }
+            user.updateOrders(updatedUser.getOrders());
         }
-        User user = getUsernameById(id);
-        user.updateOrders(updatedUser.getOrders());
         user.setUsername(updatedUser.getUsername());
         return userRepository.save(user);
     }
