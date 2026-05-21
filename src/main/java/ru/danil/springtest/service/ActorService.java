@@ -21,20 +21,29 @@ public class ActorService {
 
     @Transactional
     public Actor createActor(Actor actor) {
-        if(actor.getMovies() == null) {
+        if(actor.getMovies() == null || actor.getMovies().isEmpty()) {
             return actorRepository.save(actor);
         } else {
-            List<Movie> movies = actor.getMovies().stream().map(xMovie -> {
-                if (xMovie.getId() != null) {
-                    return movieService.getMovieById(xMovie.getId())
-                            .orElseThrow(() -> new UserExeption("Фильм с указаным айди не найден:" + xMovie.getId(), HttpStatus.NOT_FOUND));
+            List<Movie> allMovie = new ArrayList<>();
+            Set<UUID> ids = new HashSet<>();
+            actor.getMovies().forEach(xMovies -> {
+                if(xMovies.getId() != null) {
+                    ids.add(xMovies.getId());
+                } else {
+                    allMovie.add(xMovies);
                 }
-                return xMovie;
-            }).toList();
-            actor.setMovies(movies);
+            });
+            if(!ids.isEmpty()) {
+                List<Movie> moviesOfActor = movieService.findByIdIn(ids);
+                if (moviesOfActor.size() != ids.size()){
+                    throw  new UserExeption("Был передан несуществующий айди фильма", HttpStatus.BAD_REQUEST);
+                }
+                allMovie.addAll(moviesOfActor);
+            }
+
+            actor.setMovies(allMovie);
             actor.linkMovies();
         }
-        actor.linkMovies();
         return actorRepository.save(actor);
     }
 
@@ -50,11 +59,11 @@ public class ActorService {
 
         Set<UUID> ids = new HashSet<>();
         if (updateActor.getMovies() != null) {
-            for (Movie xMovie : updateActor.getMovies()) {
-                if (xMovie.getId() != null) {
+            updateActor.getMovies().forEach(xMovie -> {
+                if(xMovie.getId() != null) {
                     ids.add(xMovie.getId());
                 }
-            }
+            });
         } else return actorRepository.save(actor);
         List<Movie> moviesOfActor = movieService.findByIdIn(ids);
 
