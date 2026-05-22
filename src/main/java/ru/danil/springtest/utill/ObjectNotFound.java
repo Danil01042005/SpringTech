@@ -6,11 +6,11 @@ import org.springframework.http.HttpStatus;
 
 @AllArgsConstructor
 @Getter
-public class UserExeption extends RuntimeException {
+public class ObjectNotFound extends RuntimeException {
 
     private final HttpStatus status;
 
-    public UserExeption(String message, HttpStatus status) {
+    public ObjectNotFound(String message, HttpStatus status) {
         super(message);
         this.status = status;
     }
