@@ -1,57 +1,41 @@
 package ru.danil.springtest.service;
 
-import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.danil.springtest.model.Order;
 import ru.danil.springtest.model.User;
 import ru.danil.springtest.repository.UserRepository;
-import ru.danil.springtest.utill.UserExeption;
+import ru.danil.springtest.utill.ObjectNotFound;
 
 import java.util.*;
 
 @Service
-@AllArgsConstructor
-@Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
-    private final OrderService orderService;
 
+    @Transactional(readOnly = true)
     public User getUsernameById(UUID id){
-        return userRepository.findById(id).orElseThrow(() -> new UserExeption("Пользователь с таким id не найден", HttpStatus.NOT_FOUND));
-    }
-
-    @Transactional
-    public User createUser(User user) {
-        user.linkOrders();
-        return userRepository.save(user);
-    }
-
-    @Transactional
-    public User userUpdate(UUID id, User updatedUser) {
-        User user = userRepository.findByIdWithOrders(id).orElseThrow(() -> new UserExeption("Пользователь с таким id не найден", HttpStatus.NOT_FOUND));
-        if(updatedUser.getOrders() != null && !updatedUser.getOrders().isEmpty()) {
-            Set<UUID> ids = new HashSet<>();
-            for (Order updatedOrder : updatedUser.getOrders()){
-                if(updatedOrder.getId() != null) {
-                    ids.add(updatedOrder.getId());
-                }
-            }
-            List<Order> ordersOfUser = orderService.findByIdIn(ids);
-            if (ordersOfUser.size() != ids.size()) {
-                throw new UserExeption("Неправльно ввели айди", HttpStatus.BAD_REQUEST);
-            }
-            user.updateOrders(updatedUser.getOrders());
-        }
-        user.setUsername(updatedUser.getUsername());
-        return userRepository.save(user);
+        return userRepository.findByIdWithOrders(id).orElseThrow(() -> new ObjectNotFound("Пользователь с таким id не найден"));
     }
 
     @Transactional
     public void deleteUser(UUID id) {
         User user = getUsernameById(id);
         userRepository.deleteById(id);
+    }
+
+    @Transactional
+    public User createUser(User user){
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public User updateUser(UUID id, User updatedUser) {
+        User user = getUsernameById(id);
+        user.setUsername(updatedUser.getUsername());
+        user.setOrders(updatedUser.getOrders());
+        return userRepository.save(user);
     }
 }

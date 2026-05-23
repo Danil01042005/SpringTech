@@ -50,19 +50,15 @@ public class Actor {
             inverseJoinColumns = @JoinColumn(name = "movie_id"),
             schema = "test"
     )
-    private List<Movie> movies = new ArrayList<>();
+    private List<Movie> movies;
 
-    public void linkMovies(){
-        this.movies.forEach(movie -> movie.getActors().add(this));
+    @PrePersist
+    private void onCreate() {
+        this.createdAt = LocalDateTime.now();
     }
 
-    public void updateMovies(List<Movie> moviesOfActor) {
-        this.movies.removeIf(thisMovie -> !moviesOfActor.contains(thisMovie));
-
-        for (Movie movie : moviesOfActor) {
-            if(!this.getMovies().contains(movie)){
-                this.movies.add(movie);
-            }
-        }
+    @PreUpdate
+    private void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 }

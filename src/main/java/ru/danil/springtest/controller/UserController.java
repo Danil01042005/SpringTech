@@ -1,43 +1,40 @@
 package ru.danil.springtest.controller;
 
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
-import org.modelmapper.ModelMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
 import ru.danil.springtest.api.UserAndOrdersApi;
 import ru.danil.springtest.dto.UserDTO;
-import ru.danil.springtest.model.User;
+import ru.danil.springtest.mapper.UserMapper;
 import ru.danil.springtest.service.UserService;
 
 import java.util.UUID;
 
 @RestController
-@AllArgsConstructor
+@Validated
+@RequiredArgsConstructor
 public class UserController implements UserAndOrdersApi {
-
     private final UserService userService;
-    private final ModelMapper modelMapper;
+    private final UserMapper userMapper;
 
     @Override
     public ResponseEntity<UserDTO> getUsernameById(UUID id) {
-        User user = userService.getUsernameById(id);
-        return ResponseEntity.ok(convertToUserDTO(user));
+        return ResponseEntity.ok(userMapper.toUserDTO(userService.getUsernameById(id)));
     }
-
 
     @Override
     public ResponseEntity<UserDTO> createUser(@Valid UserDTO userDTO) {
-        User user = userService.createUser(convertToUser(userDTO));
-        return ResponseEntity.status(HttpStatus.CREATED).body(convertToUserDTO(user));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                             .body(userMapper.toUserDTO(userService.createUser(userMapper.toUser(userDTO))));
     }
 
-
     @Override
-    public ResponseEntity<UserDTO> userUpdate(UUID id,@Valid UserDTO userDTO) {
-        return ResponseEntity.ok(convertToUserDTO(userService.userUpdate(id, convertToUser(userDTO))));
+    public ResponseEntity<UserDTO> userUpdate(UUID id, @Valid UserDTO userDTO) {
+        return ResponseEntity.ok(userMapper.toUserDTO(userService.updateUser(id, userMapper.toUser(userDTO))));
     }
 
     @Override
@@ -45,13 +42,4 @@ public class UserController implements UserAndOrdersApi {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
-
-    private UserDTO convertToUserDTO(User user) {
-        return modelMapper.map(user , UserDTO.class);
-    }
-
-    private User convertToUser(UserDTO userDTO) {
-        return modelMapper.map(userDTO, User.class);
-    }
-
 }

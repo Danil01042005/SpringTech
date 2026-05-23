@@ -43,4 +43,13 @@ public class Movie {
     @ManyToMany(mappedBy = "movies")
     private List<Actor> actors = new ArrayList<>();
 
+    @PrePersist
+    private void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    private void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

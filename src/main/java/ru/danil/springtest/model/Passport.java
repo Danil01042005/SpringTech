@@ -42,4 +42,13 @@ public class Passport {
     @JoinColumn(name = "person_id", referencedColumnName = "id")
     private Person person;
 
+    @PrePersist
+    private void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    private void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

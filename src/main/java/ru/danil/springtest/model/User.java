@@ -1,6 +1,5 @@
 package ru.danil.springtest.model;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,8 +9,8 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 
@@ -45,31 +44,26 @@ public class User {
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Order> orders;
 
-    public void linkOrders(){
-            this.orders.forEach(order -> order.setOwner(this));
-    }
-
-    public void updateOrders(List<Order> newOrders) {
-        this.orders.removeIf(thisOrder -> newOrders.stream()
-                .filter(newOrder -> newOrder.getId() != null)
-                .noneMatch(newOrder -> newOrder.getId().equals(thisOrder.getId())));
-
-        for(Order newOrder : newOrders){
-            if(newOrder.getId() == null) {
-                newOrder.setOwner(this);
-                this.orders.add(newOrder);
-                continue;
-            }
-            Optional<Order> thisOrder = this.orders.stream()
-                    .filter(o -> o.getId().equals(newOrder.getId())).findFirst();
-
-            if (thisOrder.isPresent()) {
-                Order orderToUpdate = thisOrder.get();
-                orderToUpdate.setOrderDetails(newOrder.getOrderDetails());
-            } else {
-                newOrder.setOwner(this);
-                this.orders.add(newOrder);
+    public void setOrders(List<Order> orders) {
+        if (this.orders == null) {
+            this.orders = new ArrayList<>();
+        }
+        this.orders.clear();
+        if (orders != null) {
+            for (Order order : orders) {
+                order.setOwner(this);
+                this.orders.add(order);
             }
         }
+    }
+
+    @PrePersist
+    private void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    private void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 }
