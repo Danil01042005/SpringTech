@@ -97,8 +97,8 @@ $RECYCLE.BIN/
 .project
 .settings
 bin
-build
-!/build/generated/src
+/build/*
+!/build/generated/
 !build\generated\sources\annotationProcessor
 target
 dependency-reduced-pom.xml
