@@ -1,4 +1,4 @@
-package ru.danil.springtest.utill;
+package ru.danil.springtest.exeption;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

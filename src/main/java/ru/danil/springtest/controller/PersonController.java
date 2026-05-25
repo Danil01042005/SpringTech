@@ -8,7 +8,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 import ru.danil.springtest.api.PersonAndPassportApi;
 import ru.danil.springtest.dto.PersonDTO;
-import ru.danil.springtest.mapper.PersonMapper;
 import ru.danil.springtest.service.PersonService;
 
 import java.util.UUID;
@@ -18,12 +17,11 @@ import java.util.UUID;
 @Validated
 public class PersonController implements PersonAndPassportApi {
     private final PersonService personService;
-    private final PersonMapper personMapper;
 
     @Override
     public ResponseEntity<PersonDTO> createPerson(@Valid PersonDTO personDTO) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                             .body(personMapper.toPersonDTO(personService.createPerson(personMapper.toPerson(personDTO))));
+                             .body(personService.createPerson(personDTO));
     }
 
     @Override
@@ -34,11 +32,11 @@ public class PersonController implements PersonAndPassportApi {
 
     @Override
     public ResponseEntity<PersonDTO> getPerson(UUID id) {
-        return ResponseEntity.ok(personMapper.toPersonDTO(personService.getPerson(id)));
+        return ResponseEntity.ok(personService.getPerson(id));
     }
 
     @Override
-    public ResponseEntity<PersonDTO> personUpdate(UUID id, @Valid PersonDTO personDTO) {
-        return ResponseEntity.ok(personMapper.toPersonDTO(personService.updatePerson(id , personMapper.toPerson(personDTO))));
+    public ResponseEntity<PersonDTO> personUpdate(UUID id, @Valid PersonDTO updatedPersonDTO) {
+        return ResponseEntity.ok(personService.updatePerson(id , updatedPersonDTO));
     }
 }

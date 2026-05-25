@@ -1,29 +1,30 @@
 package ru.danil.springtest.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.danil.springtest.dto.PersonDTO;
+import ru.danil.springtest.mapper.PersonMapper;
 import ru.danil.springtest.model.Person;
 import ru.danil.springtest.repository.PersonRepository;
-import ru.danil.springtest.utill.ObjectNotFound;
+import ru.danil.springtest.exeption.ObjectNotFound;
 
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class PersonService {
-
     private final PersonRepository personRepository;
+    private final PersonMapper personMapper;
 
     @Transactional
-    public Person createPerson(Person person) {
-        return personRepository.save(person);
+    public PersonDTO createPerson(PersonDTO personDTO) {
+        return personMapper.toPersonDTO(personRepository.save(personMapper.toPerson(personDTO)));
     }
 
     @Transactional(readOnly = true)
-    public Person getPerson(UUID id) {
-        return personRepository.findById(id).orElseThrow(() -> new ObjectNotFound("Человек с таким айди не найден"));
+    public PersonDTO getPerson(UUID id) {
+        return personMapper.toPersonDTO(personRepository.findById(id).orElseThrow(() -> new ObjectNotFound("Человек с таким айди не найден")));
     }
 
     @Transactional
@@ -32,16 +33,9 @@ public class PersonService {
     }
 
     @Transactional
-    public Person updatePerson(UUID id, Person updatedPerson) {
-        Person person = getPerson(id);
-        person.setAge(updatedPerson.getAge());
-        person.setFullName(updatedPerson.getFullName());
-        if (updatedPerson.getPassport() != null && person.getPassport() != null) {
-            person.getPassport().setPassportNumber(updatedPerson.getPassport().getPassportNumber());
-        }
-        if (updatedPerson.getPassport() != null && person.getPassport() == null) {
-            person.setPassport(updatedPerson.getPassport());
-        }
-        return personRepository.save(person);
+    public PersonDTO updatePerson(UUID id, PersonDTO updatedPersonDTO) {
+        Person person = personMapper.toPerson(getPerson(id));
+        personMapper.updatePerson(updatedPersonDTO, person);
+        return personMapper.toPersonDTO(person);
     }
 }

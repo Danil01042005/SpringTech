@@ -9,7 +9,7 @@ import ru.danil.springtest.model.Person;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-23T14:37:09+0300",
+    date = "2026-05-25T12:27:49+0300",
     comments = "version: 1.6.3, compiler: IncrementalProcessingEnvironment from gradle-language-java-9.4.1.jar, environment: Java 21.0.11 (Microsoft)"
 )
 @Component
@@ -47,6 +47,27 @@ public class PersonMapperImpl implements PersonMapper {
         return personDTO;
     }
 
+    @Override
+    public void updatePerson(PersonDTO updatedPersonDTO, Person person) {
+        if ( updatedPersonDTO == null ) {
+            return;
+        }
+
+        if ( updatedPersonDTO.getPassport() != null ) {
+            if ( person.getPassport() == null ) {
+                person.setPassport( new Passport() );
+            }
+            passportDTOToPassport1( updatedPersonDTO.getPassport(), person.getPassport() );
+        }
+        else {
+            person.setPassport( null );
+        }
+        person.setFullName( updatedPersonDTO.getFullName() );
+        if ( updatedPersonDTO.getAge() != null ) {
+            person.setAge( updatedPersonDTO.getAge() );
+        }
+    }
+
     protected Passport passportDTOToPassport(PassportDTO passportDTO) {
         if ( passportDTO == null ) {
             return null;
@@ -69,5 +90,13 @@ public class PersonMapperImpl implements PersonMapper {
         passportDTO.setPassportNumber( passport.getPassportNumber() );
 
         return passportDTO;
+    }
+
+    protected void passportDTOToPassport1(PassportDTO passportDTO, Passport mappingTarget) {
+        if ( passportDTO == null ) {
+            return;
+        }
+
+        mappingTarget.setPassportNumber( passportDTO.getPassportNumber() );
     }
 }

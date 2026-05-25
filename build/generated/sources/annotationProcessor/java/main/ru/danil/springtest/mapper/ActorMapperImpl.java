@@ -11,7 +11,7 @@ import ru.danil.springtest.model.Movie;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-23T13:03:07+0300",
+    date = "2026-05-25T12:27:49+0300",
     comments = "version: 1.6.3, compiler: IncrementalProcessingEnvironment from gradle-language-java-9.4.1.jar, environment: Java 21.0.11 (Microsoft)"
 )
 @Component
@@ -47,6 +47,34 @@ public class ActorMapperImpl implements ActorMapper {
         actor.setMovies( movieDTOListToMovieList( actorDTO.getMovies() ) );
 
         return actor;
+    }
+
+    @Override
+    public void updateActor(ActorDTO updateActorDto, Actor actor) {
+        if ( updateActorDto == null ) {
+            return;
+        }
+
+        actor.setName( updateActorDto.getName() );
+        if ( updateActorDto.getAge() != null ) {
+            actor.setAge( updateActorDto.getAge() );
+        }
+        if ( actor.getMovies() != null ) {
+            List<Movie> list = movieDTOListToMovieList( updateActorDto.getMovies() );
+            if ( list != null ) {
+                actor.getMovies().clear();
+                actor.getMovies().addAll( list );
+            }
+            else {
+                actor.setMovies( null );
+            }
+        }
+        else {
+            List<Movie> list = movieDTOListToMovieList( updateActorDto.getMovies() );
+            if ( list != null ) {
+                actor.setMovies( list );
+            }
+        }
     }
 
     protected MovieDTO movieToMovieDTO(Movie movie) {

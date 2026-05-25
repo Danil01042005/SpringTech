@@ -1,8 +1,6 @@
 package ru.danil.springtest.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants;
-import org.mapstruct.ReportingPolicy;
+import org.mapstruct.*;
 import ru.danil.springtest.dto.ActorDTO;
 import ru.danil.springtest.model.Actor;
 
@@ -11,4 +9,5 @@ import ru.danil.springtest.model.Actor;
 public interface ActorMapper {
     ActorDTO toActorDTO(Actor actor);
     Actor toActor(ActorDTO actorDTO);
+    void updateActor(ActorDTO updateActorDto, @MappingTarget Actor actor);
 }

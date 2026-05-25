@@ -99,7 +99,6 @@ $RECYCLE.BIN/
 bin
 /build/*
 !/build/generated/
-!build\generated\sources\annotationProcessor
 target
 dependency-reduced-pom.xml
 *.sublime-*

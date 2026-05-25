@@ -8,10 +8,14 @@ spring:
     password: 123456
     url: jdbc:postgresql://localhost:5432/postgres
 
-    jpa:
-      database-platform: org.hibernate.dialect.PostgreSQLDialect
-      hibernate:
-        ddl-auto: validate
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
 
   flyway:
     default-schema: test
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [Request-ID: %X{requestId}] - %msg%n"

@@ -8,7 +8,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 import ru.danil.springtest.api.ActorsAndFilmsApi;
 import ru.danil.springtest.dto.ActorDTO;
-import ru.danil.springtest.mapper.ActorMapper;
 import ru.danil.springtest.service.ActorService;
 
 import java.util.UUID;
@@ -18,17 +17,15 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ActorController implements ActorsAndFilmsApi {
     private final ActorService actorService;
-    private final ActorMapper actorMapper;
 
     @Override
-    public ResponseEntity<ActorDTO> actorUpdate(UUID id, ActorDTO actorDTO) {
-        return ResponseEntity.ok(actorMapper.toActorDTO(actorService.updateActor(id, actorMapper.toActor(actorDTO))));
+    public ResponseEntity<ActorDTO> actorUpdate(UUID id, ActorDTO updatedActorDTO) {
+        return ResponseEntity.ok(actorService.updateActor(id, updatedActorDTO));
     }
 
     @Override
     public ResponseEntity<ActorDTO> createActor(@Valid ActorDTO actorDTO) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                             .body(actorMapper.toActorDTO(actorService.createActor(actorMapper.toActor(actorDTO))));
+        return ResponseEntity.status(HttpStatus.CREATED).body(actorService.createActor(actorDTO));
     }
 
     @Override
@@ -39,6 +36,6 @@ public class ActorController implements ActorsAndFilmsApi {
 
     @Override
     public ResponseEntity<ActorDTO> getActor(UUID id) {
-        return ResponseEntity.ok(actorMapper.toActorDTO(actorService.getActorById(id)));
+        return ResponseEntity.ok(actorService.getActorById(id));
     }
 }

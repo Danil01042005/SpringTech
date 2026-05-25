@@ -11,7 +11,7 @@ import ru.danil.springtest.model.User;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-23T14:37:10+0300",
+    date = "2026-05-25T12:27:49+0300",
     comments = "version: 1.6.3, compiler: IncrementalProcessingEnvironment from gradle-language-java-9.4.1.jar, environment: Java 21.0.11 (Microsoft)"
 )
 @Component
@@ -43,6 +43,31 @@ public class UserMapperImpl implements UserMapper {
         user.setUsername( userDTO.getUsername() );
 
         return user;
+    }
+
+    @Override
+    public void updateUser(UserDTO updatedUserDTO, User user) {
+        if ( updatedUserDTO == null ) {
+            return;
+        }
+
+        if ( user.getOrders() != null ) {
+            List<Order> list = orderDTOListToOrderList( updatedUserDTO.getOrders() );
+            if ( list != null ) {
+                user.getOrders().clear();
+                user.getOrders().addAll( list );
+            }
+            else {
+                user.setOrders( null );
+            }
+        }
+        else {
+            List<Order> list = orderDTOListToOrderList( updatedUserDTO.getOrders() );
+            if ( list != null ) {
+                user.setOrders( list );
+            }
+        }
+        user.setUsername( updatedUserDTO.getUsername() );
     }
 
     protected OrderDTO orderToOrderDTO(Order order) {
