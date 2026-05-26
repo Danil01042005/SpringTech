@@ -1,6 +1,7 @@
 package ru.danil.springtest.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.danil.springtest.dto.UserDTO;
@@ -11,6 +12,7 @@ import ru.danil.springtest.exeption.ObjectNotFound;
 
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -19,7 +21,10 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserDTO getUsernameById(UUID id){
-        return userMapper.toUserDTO(userRepository.findByIdWithOrders(id).orElseThrow(() -> new ObjectNotFound("Пользователь с таким id не найден")));
+        return userMapper.toUserDTO(userRepository.findByIdWithOrders(id).orElseThrow(() -> {
+            log.error("Пользователь с таким айди не найде {}", id);
+            return new ObjectNotFound("Пользователь с таким id не найден " + id);
+        }));
     }
 
     @Transactional

@@ -15,7 +15,6 @@ public class GlobalExceptionHandlerController {
     @ExceptionHandler(ObjectNotFound.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleUserException(ObjectNotFound e) {
-        log.error(e.getMessage());
         return new ErrorResponse().message(e.getMessage()).code(HttpStatus.NOT_FOUND.value());
     }
 }

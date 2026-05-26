@@ -1,27 +1,30 @@
 package ru.danil.springtest.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.danil.springtest.dto.ActorDTO;
 import ru.danil.springtest.mapper.ActorMapper;
-import ru.danil.springtest.mapper.UserMapper;
 import ru.danil.springtest.model.Actor;
 import ru.danil.springtest.repository.ActorRepository;
 import ru.danil.springtest.exeption.ObjectNotFound;
 
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ActorService {
-
     private final ActorRepository actorRepository;
     private final ActorMapper actorMapper;
 
     @Transactional(readOnly = true)
     public ActorDTO getActorById(UUID id) {
-        return actorMapper.toActorDTO(actorRepository.findByIdWithMovies(id).orElseThrow(() -> new ObjectNotFound("Актер с таким айди не найде")));
+        return actorMapper.toActorDTO(actorRepository.findByIdWithMovies(id).orElseThrow(() -> {
+            log.error("Актер с таким айди не найде {}", id);
+            return new ObjectNotFound("Актер с таким айди не найден: " + id);
+        }));
     }
 
     @Transactional
