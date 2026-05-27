@@ -26,10 +26,15 @@ public class PersonService {
 
     @Transactional(readOnly = true)
     public PersonDTO getPerson(UUID id) {
-        return personMapper.toPersonDTO(personRepository.findByIdWithPassport(id).orElseThrow(() -> {
+        Person person = personRepository.findByIdWithPassport(id).orElseThrow(() -> {
             log.error("Человек с таким айди не найде {}", id);
             return new ObjectNotFound("Человек с таким айди не найден " + id);
-        }));
+        });
+        log.debug("Найден Person: id={}, fullName={}, age={}, createdAt={}, updatedAt={}, isDeleted={}, passportId={}",
+                person.getId(), person.getFullName(), person.getAge(),
+                person.getCreatedAt(), person.getUpdatedAt(), person.getIsDeleted(),
+                person.getPassport() != null ? person.getPassport().getId() : null);
+        return personMapper.toPersonDTO(person);
     }
 
     @Transactional

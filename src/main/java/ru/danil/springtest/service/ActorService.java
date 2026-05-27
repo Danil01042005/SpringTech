@@ -21,10 +21,14 @@ public class ActorService {
 
     @Transactional(readOnly = true)
     public ActorDTO getActorById(UUID id) {
-        return actorMapper.toActorDTO(actorRepository.findByIdWithMovies(id).orElseThrow(() -> {
-            log.error("Актер с таким айди не найде {}", id);
+        Actor actor = actorRepository.findByIdWithMovies(id).orElseThrow(() -> {
+            log.error("Актер с таким айди не найден: {}", id);
             return new ObjectNotFound("Актер с таким айди не найден: " + id);
-        }));
+        });
+        log.debug("Найден актер: id={}, name={}, age={}, createdAt={}, updatedAt={}, isDeleted={}, moviesCount={}",
+                actor.getId(), actor.getName(), actor.getAge(), actor.getCreatedAt(),
+                actor.getUpdatedAt(), actor.getIsDeleted(), actor.getMovies().size());
+        return actorMapper.toActorDTO(actor);
     }
 
     @Transactional

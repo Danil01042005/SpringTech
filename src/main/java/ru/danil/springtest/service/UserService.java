@@ -21,10 +21,15 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserDTO getUsernameById(UUID id){
-        return userMapper.toUserDTO(userRepository.findByIdWithOrders(id).orElseThrow(() -> {
+        User user = userRepository.findByIdWithOrders(id).orElseThrow(() -> {
             log.error("Пользователь с таким айди не найде {}", id);
             return new ObjectNotFound("Пользователь с таким id не найден " + id);
-        }));
+        });
+        log.debug("Найден User: id={}, username={}, createdAt={}, updatedAt={}, isDeleted={}, ordersCount={}",
+                user.getId(), user.getUsername(), user.getCreatedAt(),
+                user.getUpdatedAt(), user.getIsDeleted(),
+                user.getOrders() != null ? user.getOrders().size() : 0);
+        return userMapper.toUserDTO(user);
     }
 
     @Transactional
