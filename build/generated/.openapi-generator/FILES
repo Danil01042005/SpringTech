@@ -1,0 +1,14 @@
+.openapi-generator-ignore
+README.md
+pom.xml
+src/main/java/ru/danil/springtest/api/ActorsAndFilmsApi.java
+src/main/java/ru/danil/springtest/api/ApiUtil.java
+src/main/java/ru/danil/springtest/api/PersonAndPassportApi.java
+src/main/java/ru/danil/springtest/api/UserAndOrdersApi.java
+src/main/java/ru/danil/springtest/dto/ActorDTO.java
+src/main/java/ru/danil/springtest/dto/ErrorResponse.java
+src/main/java/ru/danil/springtest/dto/MovieDTO.java
+src/main/java/ru/danil/springtest/dto/OrderDTO.java
+src/main/java/ru/danil/springtest/dto/PassportDTO.java
+src/main/java/ru/danil/springtest/dto/PersonDTO.java
+src/main/java/ru/danil/springtest/dto/UserDTO.java

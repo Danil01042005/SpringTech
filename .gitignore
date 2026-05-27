@@ -84,16 +84,6 @@ $RECYCLE.BIN/
 *.iml
 *.ipr
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
 ### VS Code ###
 .vscode/
 
@@ -107,7 +97,8 @@ build/
 .project
 .settings
 bin
-build
+/build/*
+!/build/generated/
 target
 dependency-reduced-pom.xml
 *.sublime-*
