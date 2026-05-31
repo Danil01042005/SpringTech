@@ -1,0 +1,27 @@
+# Локальные директории сборки Gradle
+build/
+.gradle/
+
+# Контроль версий
+.git/
+.gitignore
+
+# Настройки сред разработки (IDE)
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+
+# Локальные логи и системные файлы
+*.log
+.DS_Store
+Thumbs.db
+
+# Файлы Docker, которые не нужны внутри сборщика
+Dockerfile
+.dockerignore
+docker-compose*.yml

@@ -1,5 +1,5 @@
 services:
-  postgres:
+  springTech-postgres:
     image: postgres:14
     environment:
       POSTGRES_USER: postgres
@@ -8,3 +8,33 @@ services:
     ports:
       - "5432:5432"
 
+  medicine-postgres2:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: 123456
+    ports:
+      - "5433:5432"
+
+  redis:
+    image: redis:8.8.0-alpine3.23
+    ports:
+      - "6379:6379"
+
+  springtech:
+    build:
+      context: ./SpringTech
+    ports:
+      - "8080:8080"
+    depends_on:
+      - springTech-postgres
+      - redis
+
+  medicine:
+    build:
+      context: ./Medicine
+    ports:
+      - "8081:8080"
+    depends_on:
+      - medicine-postgres2

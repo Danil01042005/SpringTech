@@ -1,0 +1,6 @@
+README.md
+pom.xml
+src/main/java/ru/danil/medicine/api/ApiUtil.java
+src/main/java/ru/danil/medicine/api/MedicalPolicyApi.java
+src/main/java/ru/danil/medicine/dto/ErrorResponse.java
+src/main/java/ru/danil/medicine/dto/PolicyDTO.java

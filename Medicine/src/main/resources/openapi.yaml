@@ -1,0 +1,82 @@
+openapi: 3.1.0
+info:
+  version: 1.0.0
+  title: Medicine
+servers:
+  - url: http://localhost:8081
+
+paths:
+  /policy/created:
+    post:
+      summary: Created Medical Policy
+      operationId: createPolicy
+      tags:
+        - Medical policy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PolicyDTO"
+      responses:
+        '201':
+          description: Crated was successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyDTO"
+        '400':
+          description: Invalid input
+          content:
+            apllication/json:
+              schema:
+                $ref: "#/components/schemas/PolicyDTO"
+  /policy/{id}:
+    get:
+      summary: Get policy
+      operationId: getPolicyById
+      tags:
+        - Medical policy
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID полиса
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: policy was founded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyDTO"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    PolicyDTO:
+      required:
+        - policyNumber
+        - personId
+      properties:
+        policyNumber:
+          type: string
+          minLength: 6
+          maxLength: 6
+          example: "777777"
+        personId:
+          type: string
+          format: uuid
+          example: "4f3b2a19-7c8d-4e5f-a6b7-c8d9e0f1a2b3"
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string

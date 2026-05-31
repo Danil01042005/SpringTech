@@ -79,7 +79,7 @@ $RECYCLE.BIN/
 *.lnk
 
 ### IntelliJ IDEA ###
-.idea
+SpringTech/.idea
 *.iws
 *.iml
 *.ipr
@@ -97,8 +97,8 @@ $RECYCLE.BIN/
 .project
 .settings
 bin
-/build/*
-!/build/generated/
+**/build/*
+!**/build/generated/
 target
 dependency-reduced-pom.xml
 *.sublime-*
