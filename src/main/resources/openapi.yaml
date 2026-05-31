@@ -382,7 +382,11 @@ components:
         - fullName
         - age
         - passport
+        - policy
       properties:
+        id:
+          type: string
+          format: uuid
         fullName:
           type: string
           minLength: 4
@@ -394,6 +398,8 @@ components:
           example: 16
         passport:
           $ref: '#/components/schemas/PassportDTO'
+        policy:
+          $ref: '#/components/schemas/PolicyDTO'
     PassportDTO:
       required:
         - passportNumber
@@ -403,6 +409,18 @@ components:
           minLength: 6
           maxLength: 6
           example: 123456
+    PolicyDTO:
+      required:
+        - policyNumber
+      properties:
+        policyNumber:
+          type: string
+          minLength: 6
+          maxLength: 6
+          example: "123456"
+        personId:
+          type: string
+          format: uuid
 
     ActorDTO:
       required:
@@ -437,5 +455,3 @@ components:
       properties:
         message:
           type: string
-        code:
-          type: integer

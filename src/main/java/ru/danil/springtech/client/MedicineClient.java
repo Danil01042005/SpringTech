@@ -1,0 +1,19 @@
+package ru.danil.springtech.client;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import ru.danil.springtech.dto.PolicyDTO;
+
+import java.util.UUID;
+
+@org.springframework.cloud.openfeign.FeignClient(name = "medicine-client", url = "http://medicine:8081/policy")
+public interface MedicineClient {
+
+    @GetMapping("/{id}")
+    PolicyDTO getPolicyById(@PathVariable("id") UUID id);
+
+    @PostMapping("/created")
+    PolicyDTO createPolicy(@RequestBody PolicyDTO policyDTO);
+}
