@@ -35,7 +35,6 @@ public class PersonService {
     @Autowired
     private PersonService self;
 
-    //приставка new у объекта обозначает что объект был взят из базы 
     @CachePut(value = "PERSON_CACHE", key = "#result.id")
     public PersonDTO createPerson(PersonDTO newPersonDTO) {
         PersonDTO personDTO = self.createPersonLocal(newPersonDTO);
