@@ -16,8 +16,8 @@ import ru.danil.springtech.controller.controllerAdvice.GlobalExceptionHandlerCon
 import ru.danil.springtech.dto.PassportDTO;
 import ru.danil.springtech.dto.PersonDTO;
 import ru.danil.springtech.dto.PolicyDTO;
-import ru.danil.springtech.exсeption.ObjectNotFoundException;
-import ru.danil.springtech.exсeption.ServiceUnavailableException;
+import ru.danil.springtech.exception.ObjectNotFoundException;
+import ru.danil.springtech.exception.ServiceUnavailableException;
 import ru.danil.springtech.service.PersonSagaOrchestrator;
 import ru.danil.springtech.service.PersonService;
 

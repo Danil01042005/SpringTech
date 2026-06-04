@@ -8,7 +8,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import ru.danil.springtech.dto.PersonDTO;
 import ru.danil.springtech.dto.PolicyDTO;
-import ru.danil.springtech.exсeption.ServiceUnavailableException;
+import ru.danil.springtech.exception.ServiceUnavailableException;
 
 import java.util.UUID;
 

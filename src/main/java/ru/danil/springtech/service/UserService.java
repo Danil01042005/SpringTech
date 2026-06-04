@@ -8,7 +8,7 @@ import ru.danil.springtech.dto.UserDTO;
 import ru.danil.springtech.mapper.UserMapper;
 import ru.danil.springtech.model.User;
 import ru.danil.springtech.repository.UserRepository;
-import ru.danil.springtech.exсeption.ObjectNotFoundException;
+import ru.danil.springtech.exception.ObjectNotFoundException;
 
 import java.util.*;
 

@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import ru.danil.springtech.TestcontainersConfiguration;
-import ru.danil.springtech.exсeption.ObjectNotFoundException;
+import ru.danil.springtech.exception.ObjectNotFoundException;
 import ru.danil.springtech.repository.PersonRepository;
 
 import java.util.UUID;

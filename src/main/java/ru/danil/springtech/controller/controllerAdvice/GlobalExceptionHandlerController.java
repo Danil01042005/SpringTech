@@ -5,9 +5,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.danil.springtech.dto.ErrorResponse;
-import ru.danil.springtech.exсeption.ObjectNotFoundException;
+import ru.danil.springtech.exception.ObjectNotFoundException;
 
-import ru.danil.springtech.exсeption.ServiceUnavailableException;
+import ru.danil.springtech.exception.ServiceUnavailableException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandlerController {

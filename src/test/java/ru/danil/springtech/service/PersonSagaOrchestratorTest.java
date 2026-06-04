@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.danil.springtech.TestcontainersConfiguration;
 import ru.danil.springtech.client.MedicineClient;
 import ru.danil.springtech.dto.PolicyDTO;
-import ru.danil.springtech.exсeption.ServiceUnavailableException;
+import ru.danil.springtech.exception.ServiceUnavailableException;
 import ru.danil.springtech.repository.PersonRepository;
 import ru.danil.springtech.support.FeignTestExceptions;
 

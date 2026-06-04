@@ -1,4 +1,4 @@
-package ru.danil.springtech.exсeption;
+package ru.danil.springtech.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

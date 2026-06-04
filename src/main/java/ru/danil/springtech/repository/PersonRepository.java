@@ -11,5 +11,5 @@ import java.util.UUID;
 public interface PersonRepository extends JpaRepository<Person, UUID> {
 
     @Query("SELECT p FROM Person p LEFT JOIN FETCH p.passport WHERE p.id = :id")
-    Optional<Person> findByIdWithPassport(@Param("id") UUID id);
+    Optional<Person> findPersonById(@Param("id") UUID id);
 }

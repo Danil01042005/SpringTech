@@ -8,7 +8,7 @@ import ru.danil.springtech.dto.ActorDTO;
 import ru.danil.springtech.mapper.ActorMapper;
 import ru.danil.springtech.model.Actor;
 import ru.danil.springtech.repository.ActorRepository;
-import ru.danil.springtech.exсeption.ObjectNotFoundException;
+import ru.danil.springtech.exception.ObjectNotFoundException;
 
 import java.util.*;
 
