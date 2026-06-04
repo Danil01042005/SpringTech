@@ -1,0 +1,164 @@
+package ru.danil.springtech.service;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import ru.danil.springtech.TestcontainersConfiguration;
+import ru.danil.springtech.client.MedicineClient;
+import ru.danil.springtech.dto.PolicyDTO;
+import ru.danil.springtech.exсeption.ServiceUnavailableException;
+import ru.danil.springtech.repository.PersonRepository;
+import ru.danil.springtech.support.FeignTestExceptions;
+
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static ru.danil.springtech.support.PersonTestFixtures.personWithoutPolicy;
+import static ru.danil.springtech.support.PersonTestFixtures.personWithPolicy;
+import static ru.danil.springtech.support.PersonTestFixtures.policyDto;
+
+@SpringBootTest
+@ActiveProfiles("test")
+@Import(TestcontainersConfiguration.class)
+@Transactional
+class PersonSagaOrchestratorTest {
+
+    @Autowired
+    private PersonService personService;
+
+    @Autowired
+    private PersonSagaOrchestrator personSagaOrchestrator;
+
+    @Autowired
+    private PersonRepository personRepository;
+
+    @Autowired
+    private CacheManager cacheManager;
+
+    @MockitoBean
+    private MedicineClient medicineClient;
+
+    @BeforeEach
+    void clearPersonCache() {
+        Cache cache = cacheManager.getCache("PERSON_CACHE");
+        if (cache != null) {
+            cache.clear();
+        }
+    }
+
+    @Test
+    void getPerson_enrichesPersonWithPolicyFromMedicineService() {
+        var saved = personService.createPersonLocal(personWithoutPolicy("Мария Иванова", 30, "654321"));
+        UUID personId = saved.getId();
+        var policyFromMedicine = policyDto("111111", personId);
+        when(medicineClient.getPolicyByIdDTO(personId)).thenReturn(policyFromMedicine);
+
+        var result = personSagaOrchestrator.getPerson(personId);
+
+        assertThat(result.getId()).isEqualTo(personId);
+        assertThat(result.getPolicy()).isNotNull();
+        assertThat(result.getPolicy().getPolicyNumber()).isEqualTo("111111");
+        assertThat(result.getPolicy().getPersonId()).isEqualTo(personId);
+        verify(medicineClient).getPolicyByIdDTO(personId);
+    }
+
+    @Test
+    void getPerson_whenPolicyNotFound_returnsPersonWithoutPolicy() {
+        var saved = personService.createPersonLocal(personWithoutPolicy("Сергей Орлов", 27, "556677"));
+        UUID personId = saved.getId();
+        when(medicineClient.getPolicyByIdDTO(personId))
+                .thenThrow(FeignTestExceptions.notFound("GET", "/policy/" + personId));
+
+        var result = personSagaOrchestrator.getPerson(personId);
+
+        assertThat(result.getId()).isEqualTo(personId);
+        assertThat(result.getPolicy()).isNull();
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void getPerson_secondCallReadsFromRedisCacheWithoutCallingMedicineAgain() {
+        var saved = personService.createPersonLocal(personWithoutPolicy("Пётр Сидоров", 28, "112233"));
+        UUID personId = saved.getId();
+        when(medicineClient.getPolicyByIdDTO(personId)).thenReturn(policyDto("222222", personId));
+
+        personSagaOrchestrator.getPerson(personId);
+        verify(medicineClient, times(1)).getPolicyByIdDTO(personId);
+        clearInvocations(medicineClient);
+
+        personSagaOrchestrator.getPerson(personId);
+        verify(medicineClient, never()).getPolicyByIdDTO(eq(personId));
+
+        Cache cache = cacheManager.getCache("PERSON_CACHE");
+        assertThat(cache).isNotNull();
+        assertThat(cache.get(personId)).isNotNull();
+    }
+
+    @Test
+    void createPerson_withPolicy_enrichesPersonAndCallsMedicine() {
+        var input = personWithPolicy("Дмитрий Кузнецов", 33, "334455", "444444");
+        when(medicineClient.createPolicyDTO(any(PolicyDTO.class))).thenAnswer(invocation -> {
+            PolicyDTO request = invocation.getArgument(0);
+            return policyDto(request.getPolicyNumber(), request.getPersonId());
+        });
+
+        var created = personSagaOrchestrator.createPerson(input);
+
+        assertThat(created.getId()).isNotNull();
+        assertThat(created.getPolicy()).isNotNull();
+        assertThat(created.getPolicy().getPolicyNumber()).isEqualTo("444444");
+        assertThat(created.getPolicy().getPersonId()).isEqualTo(created.getId());
+        verify(medicineClient).createPolicyDTO(any(PolicyDTO.class));
+    }
+
+    @Test
+    void createPerson_whenMedicineFails_rollsBackLocalPerson() {
+        var input = personWithPolicy("Николай Белов", 29, "667788", "555555");
+        when(medicineClient.createPolicyDTO(any(PolicyDTO.class)))
+                .thenThrow(FeignTestExceptions.serverError("POST", "/policy/created"));
+
+        assertThatThrownBy(() -> personSagaOrchestrator.createPerson(input))
+                .isInstanceOf(ServiceUnavailableException.class);
+
+        assertThat(personRepository.findAll()).isEmpty();
+        verify(medicineClient, times(2)).createPolicyDTO(any(PolicyDTO.class));
+    }
+
+    @Test
+    void createPerson_withoutPolicy_doesNotCallMedicine() {
+        var input = personWithoutPolicy("Олег Козлов", 40, "778899");
+
+        var created = personSagaOrchestrator.createPerson(input);
+
+        assertThat(created.getId()).isNotNull();
+        assertThat(created.getPolicy()).isNull();
+        verify(medicineClient, never()).createPolicyDTO(any());
+    }
+
+    @Test
+    void getPerson_whenMedicineUnavailable_throwsServiceUnavailableException() {
+        var saved = personService.createPersonLocal(personWithoutPolicy("Ирина Соколова", 31, "889900"));
+        UUID personId = saved.getId();
+        when(medicineClient.getPolicyByIdDTO(personId))
+                .thenThrow(FeignTestExceptions.serverError("GET", "/policy/" + personId));
+
+        assertThatThrownBy(() -> personSagaOrchestrator.getPerson(personId))
+                .isInstanceOf(ServiceUnavailableException.class);
+    }
+}

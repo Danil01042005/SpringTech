@@ -17,6 +17,8 @@ import ru.danil.springtech.dto.PassportDTO;
 import ru.danil.springtech.dto.PersonDTO;
 import ru.danil.springtech.dto.PolicyDTO;
 import ru.danil.springtech.exсeption.ObjectNotFoundException;
+import ru.danil.springtech.exсeption.ServiceUnavailableException;
+import ru.danil.springtech.service.PersonSagaOrchestrator;
 import ru.danil.springtech.service.PersonService;
 
 import java.util.UUID;
@@ -43,11 +45,14 @@ class PersonControllerTest {
     @MockitoBean
     private PersonService personService;
 
+    @MockitoBean
+    private PersonSagaOrchestrator personSagaOrchestrator;
+
     @Test
     void createPerson_withValidBody_returns201AndPerson() throws Exception {
         UUID personId = UUID.randomUUID();
         PersonDTO response = validPersonResponse(personId);
-        when(personService.createPerson(any(PersonDTO.class))).thenReturn(response);
+        when(personSagaOrchestrator.createPerson(any(PersonDTO.class))).thenReturn(response);
 
         mockMvc.perform(post("/person/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -59,7 +64,7 @@ class PersonControllerTest {
                 .andExpect(jsonPath("$.passport.passportNumber").value("123456"))
                 .andExpect(jsonPath("$.policy.policyNumber").value("654321"));
 
-        verify(personService).createPerson(any(PersonDTO.class));
+        verify(personSagaOrchestrator).createPerson(any(PersonDTO.class));
     }
 
     @Test
@@ -81,9 +86,22 @@ class PersonControllerTest {
     }
 
     @Test
+    void createPerson_whenMedicineUnavailable_returns503() throws Exception {
+        when(personSagaOrchestrator.createPerson(any(PersonDTO.class)))
+                .thenThrow(new ServiceUnavailableException("Не удалось создать пользователя, сервис медецины  не отвечат."));
+
+        mockMvc.perform(post("/person/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(validPersonJson()))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.message")
+                        .value("Не удалось создать пользователя, сервис медецины  не отвечат."));
+    }
+
+    @Test
     void getPerson_whenExists_returns200AndBody() throws Exception {
         UUID personId = UUID.randomUUID();
-        when(personService.getPerson(personId)).thenReturn(validPersonResponse(personId));
+        when(personSagaOrchestrator.getPerson(personId)).thenReturn(validPersonResponse(personId));
 
         mockMvc.perform(get("/person/{id}", personId))
                 .andExpect(status().isOk())
@@ -91,18 +109,30 @@ class PersonControllerTest {
                 .andExpect(jsonPath("$.fullName").value("Иван Петров"))
                 .andExpect(jsonPath("$.policy.policyNumber").value("654321"));
 
-        verify(personService).getPerson(personId);
+        verify(personSagaOrchestrator).getPerson(personId);
     }
 
     @Test
     void getPerson_whenNotFound_returns404AndErrorMessage() throws Exception {
         UUID personId = UUID.randomUUID();
-        when(personService.getPerson(personId))
+        when(personSagaOrchestrator.getPerson(personId))
                 .thenThrow(new ObjectNotFoundException("Человек с таким айди не найден " + personId));
 
         mockMvc.perform(get("/person/{id}", personId))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Человек с таким айди не найден " + personId));
+    }
+
+    @Test
+    void getPerson_whenMedicineUnavailable_returns503() throws Exception {
+        UUID personId = UUID.randomUUID();
+        when(personSagaOrchestrator.getPerson(personId))
+                .thenThrow(new ServiceUnavailableException("Не удалось найти полис,сервис медецины временно не доступен"));
+
+        mockMvc.perform(get("/person/{id}", personId))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.message")
+                        .value("Не удалось найти полис,сервис медецины временно не доступен"));
     }
 
     @Test

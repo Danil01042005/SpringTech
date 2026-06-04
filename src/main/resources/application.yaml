@@ -32,3 +32,13 @@ spring:
 logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [Request-ID: %X{requestId}] - %msg%n"
+
+feign:
+  client:
+    config:
+      medicine-client:
+        connectTimeout: 1s
+        readTimeout: 1s
+
+api:
+    medicineURL: http://medicine:8081/policy

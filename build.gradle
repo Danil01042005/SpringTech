@@ -74,14 +74,6 @@ sourceSets {
         java {
             srcDirs += layout.buildDirectory.dir("generated/src/main/java").get().asFile.path
         }
-    }
-}
-
-sourceSets {
-    main {
-        java {
-            srcDirs += layout.buildDirectory.dir("generated/src/main/java").get().asFile.path
-        }
         resources {
             srcDirs = ["src/main/resources"]
         }

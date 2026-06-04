@@ -8,12 +8,12 @@ import ru.danil.springtech.dto.PolicyDTO;
 
 import java.util.UUID;
 
-@org.springframework.cloud.openfeign.FeignClient(name = "medicine-client", url = "http://medicine:8081/policy")
+@org.springframework.cloud.openfeign.FeignClient(name = "medicine-client", url = "${api.medicineURL}")
 public interface MedicineClient {
 
     @GetMapping("/{id}")
-    PolicyDTO getPolicyById(@PathVariable("id") UUID id);
+    PolicyDTO getPolicyByIdDTO(@PathVariable("id") UUID id);
 
     @PostMapping("/created")
-    PolicyDTO createPolicy(@RequestBody PolicyDTO policyDTO);
+    PolicyDTO createPolicyDTO(@RequestBody PolicyDTO policyDTO);
 }
