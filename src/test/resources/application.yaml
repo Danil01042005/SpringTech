@@ -37,11 +37,11 @@ feign:
   client:
     config:
       medicine-client:
-        connectTimeout: 3s
-        readTimeout: 3s
+        connectTimeout: 1s
+        readTimeout: 1s
 
 api:
-    medicine-url: http://medicine:8081/policy
+  medicine-url: http://medicine:8081/policy
 
 retry-config:
   max-attempts: 2
@@ -53,13 +53,7 @@ retry-config:
     retry-cost: 10
 
 jobrunr:
-  job-scheduler:
-    enabled: true
   background-job-server:
-    enabled: true
+    enabled: false
   dashboard:
-    enabled: true
-    port: 8000
-  jobs:
-    default-number-of-retries: 20
-    retry-back-off-time-seed: 300
+    enabled: false

@@ -31,6 +31,7 @@ dependencies {
     implementation 'org.mapstruct:mapstruct:1.6.3'
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:5.0.1'
     implementation 'org.springframework.retry:spring-retry:2.0.12'
+    implementation 'org.jobrunr:jobrunr-spring-boot-4-starter:8.6.1'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'org.postgresql:postgresql'
     annotationProcessor 'org.projectlombok:lombok'
@@ -64,6 +65,10 @@ openApiGenerate {
             useSpringBoot3: "true",
             openApiNullable: "false"
     ]
+}
+
+tasks.named("compileJava") {
+    dependsOn("openApiGenerate")
 }
 
 tasks.named('test') {

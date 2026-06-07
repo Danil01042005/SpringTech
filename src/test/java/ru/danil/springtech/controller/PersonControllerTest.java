@@ -86,16 +86,34 @@ class PersonControllerTest {
     }
 
     @Test
-    void createPerson_whenMedicineUnavailable_returns503() throws Exception {
+    void createPerson_whenMedicineUnavailable_returns201WithoutPolicy() throws Exception {
+        UUID personId = UUID.randomUUID();
+        PersonDTO response = validPersonResponse(personId);
+        response.setPolicy(null);
+        when(personSagaOrchestrator.createPerson(any(PersonDTO.class))).thenReturn(response);
+
+        mockMvc.perform(post("/person/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(validPersonJson()))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(personId.toString()))
+                .andExpect(jsonPath("$.fullName").value("Иван Петров"))
+                .andExpect(jsonPath("$.policy").doesNotExist());
+
+        verify(personSagaOrchestrator).createPerson(any(PersonDTO.class));
+    }
+
+    @Test
+    void createPerson_whenBusinessValidationFails_returns503() throws Exception {
         when(personSagaOrchestrator.createPerson(any(PersonDTO.class)))
-                .thenThrow(new ServiceUnavailableException("Не удалось создать пользователя, сервис медецины  не отвечат."));
+                .thenThrow(new ServiceUnavailableException("Не удалось создать пользователя: ошибка данных"));
 
         mockMvc.perform(post("/person/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(validPersonJson()))
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(jsonPath("$.message")
-                        .value("Не удалось создать пользователя, сервис медецины  не отвечат."));
+                        .value("Не удалось создать пользователя: ошибка данных"));
     }
 
     @Test
@@ -127,12 +145,12 @@ class PersonControllerTest {
     void getPerson_whenMedicineUnavailable_returns503() throws Exception {
         UUID personId = UUID.randomUUID();
         when(personSagaOrchestrator.getPerson(personId))
-                .thenThrow(new ServiceUnavailableException("Не удалось найти полис,сервис медецины временно не доступен"));
+                .thenThrow(new ServiceUnavailableException("Сервис медицины временно недоступен"));
 
         mockMvc.perform(get("/person/{id}", personId))
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(jsonPath("$.message")
-                        .value("Не удалось найти полис,сервис медецины временно не доступен"));
+                        .value("Сервис медицины временно недоступен"));
     }
 
     @Test

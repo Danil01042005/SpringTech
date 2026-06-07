@@ -1,0 +1,20 @@
+package ru.danil.springtech.annotation;
+
+import feign.FeignException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+//Вынес в анотация мои ретраи, чтобы они огрымными над методами не весели
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Retryable(retryFor = FeignException.class, maxAttemptsExpression = "${retry-config.max-attempts}",
+        backoff = @Backoff(delayExpression = "${retry-config.delay}" , multiplierExpression = "${retry-config.multiplier}", random = true),
+        exceptionExpression = "@retryBudgetConfig.retry(#root)"
+)
+public @interface MedicineRetry {
+}

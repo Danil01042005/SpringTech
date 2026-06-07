@@ -8,7 +8,7 @@ import ru.danil.springtech.dto.PolicyDTO;
 
 import java.util.UUID;
 
-@org.springframework.cloud.openfeign.FeignClient(name = "medicine-client", url = "${api.medicineURL}")
+@org.springframework.cloud.openfeign.FeignClient(name = "medicine-client", url = "${api.medicine-url}")
 public interface MedicineClient {
 
     @GetMapping("/{id}")

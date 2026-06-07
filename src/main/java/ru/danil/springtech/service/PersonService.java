@@ -2,6 +2,8 @@ package ru.danil.springtech.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.danil.springtech.dto.PersonDTO;
@@ -20,11 +22,13 @@ public class PersonService {
     private final PersonMapper personMapper;
 
     @Transactional
+    @CachePut(value = "PERSON_CACHE", key = "#result.id")
     public PersonDTO createPersonLocal(PersonDTO personDTO) {
         return personMapper.toPersonDTO(personRepository.save(personMapper.toPerson(personDTO)));
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "PERSON_CACHE", key = "#id")
     public PersonDTO getLocalPerson(UUID id) {
         Person person = personRepository.findPersonById(id).orElseThrow(() -> {
             log.error("Человек с таким айди не найде {}", id);

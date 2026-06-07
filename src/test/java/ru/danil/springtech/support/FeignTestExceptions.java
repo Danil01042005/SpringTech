@@ -33,4 +33,29 @@ public final class FeignTestExceptions {
         );
         return new FeignException.InternalServerError("medicine unavailable", request, null, null);
     }
+
+    public static FeignException.Forbidden forbidden(String method, String path) {
+        Request request = Request.create(
+                Request.HttpMethod.valueOf(method),
+                path,
+                Collections.emptyMap(),
+                null,
+                null,
+                null
+        );
+        return new FeignException.Forbidden("forbidden", request, null, null);
+    }
+
+    public static FeignException timeout(String method, String path) {
+        Request request = Request.create(
+                Request.HttpMethod.valueOf(method),
+                path,
+                Collections.emptyMap(),
+                null,
+                null,
+                null
+        );
+        return new FeignException(-1, "timeout", request, null, null) {
+        };
+    }
 }

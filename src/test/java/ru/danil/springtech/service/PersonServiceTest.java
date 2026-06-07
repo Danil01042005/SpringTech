@@ -1,10 +1,14 @@
 package ru.danil.springtech.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.danil.springtech.TestcontainersConfiguration;
 import ru.danil.springtech.exception.ObjectNotFoundException;
@@ -27,6 +31,18 @@ class PersonServiceTest {
 
     @Autowired
     private PersonRepository personRepository;
+
+    @Autowired
+    private CacheManager cacheManager;
+
+    @BeforeEach
+    void setUp() {
+        Cache cache = cacheManager.getCache("PERSON_CACHE");
+        if (cache != null) {
+            cache.clear();
+        }
+        personRepository.deleteAll();
+    }
 
     @Test
     void createPersonLocal_persistsPersonWithPassport() {
@@ -59,5 +75,19 @@ class PersonServiceTest {
         personService.deletePersonById(personId);
 
         assertThat(personRepository.findById(personId)).isEmpty();
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void getLocalPerson_secondCallReadsFromRedisCache() {
+        var saved = personService.createPersonLocal(personWithoutPolicy("Наталья Кузнецова", 29, "556644"));
+        UUID personId = saved.getId();
+
+        personService.getLocalPerson(personId);
+        personService.getLocalPerson(personId);
+
+        Cache cache = cacheManager.getCache("PERSON_CACHE");
+        assertThat(cache).isNotNull();
+        assertThat(cache.get(personId)).isNotNull();
     }
 }

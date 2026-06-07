@@ -1,6 +1,0 @@
-spring:
-  main:
-    allow-circular-references: true
-
-api:
-  medicineURL: http://localhost:8081/policy
