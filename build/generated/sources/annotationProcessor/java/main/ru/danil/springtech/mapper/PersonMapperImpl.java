@@ -1,6 +1,7 @@
 package ru.danil.springtech.mapper;
 
 import javax.annotation.processing.Generated;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.danil.springtech.dto.PassportDTO;
 import ru.danil.springtech.dto.PersonDTO;
@@ -9,11 +10,14 @@ import ru.danil.springtech.model.Person;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-05-31T20:39:18+0300",
+    date = "2026-06-24T17:56:59+0300",
     comments = "version: 1.6.3, compiler: IncrementalProcessingEnvironment from gradle-language-java-9.4.1.jar, environment: Java 21.0.11 (Microsoft)"
 )
 @Component
 public class PersonMapperImpl implements PersonMapper {
+
+    @Autowired
+    private PersonPolicyStatusMapper personPolicyStatusMapper;
 
     @Override
     public Person toPerson(PersonDTO personDTO) {
@@ -45,6 +49,7 @@ public class PersonMapperImpl implements PersonMapper {
         personDTO.setFullName( person.getFullName() );
         personDTO.setAge( person.getAge() );
         personDTO.setPassport( passportToPassportDTO( person.getPassport() ) );
+        personDTO.setPolicyStatus( personPolicyStatusMapper.toDto( person.getPolicyStatus() ) );
 
         return personDTO;
     }

@@ -11,15 +11,19 @@ public final class PersonTestFixtures {
     private PersonTestFixtures() {
     }
 
-    public static PersonDTO personWithoutPolicy(String fullName, int age, String passportNumber) {
-        return new PersonDTO(fullName, age, new PassportDTO(passportNumber), null);
+    public static PersonDTO человекБезПолиса(String fullName, int age, String passportNumber) {
+        PersonDTO personDTO = new PersonDTO(fullName, age, new PassportDTO(passportNumber));
+        personDTO.setPolicy(null);
+        return personDTO;
     }
 
-    public static PersonDTO personWithPolicy(String fullName, int age, String passportNumber, String policyNumber) {
-        return new PersonDTO(fullName, age, new PassportDTO(passportNumber), new PolicyDTO(policyNumber));
+    public static PersonDTO человекСПолисом(String fullName, int age, String passportNumber, String policyNumber) {
+        PersonDTO personDTO = new PersonDTO(fullName, age, new PassportDTO(passportNumber));
+        personDTO.setPolicy(new PolicyDTO(policyNumber));
+        return personDTO;
     }
 
-    public static PolicyDTO policyDto(String policyNumber, UUID personId) {
+    public static PolicyDTO полис(String policyNumber, UUID personId) {
         PolicyDTO dto = new PolicyDTO(policyNumber);
         if (personId != null) {
             dto.setPersonId(personId);

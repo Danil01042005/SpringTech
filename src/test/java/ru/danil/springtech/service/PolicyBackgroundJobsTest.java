@@ -11,6 +11,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 import ru.danil.springtech.TestcontainersConfiguration;
 import ru.danil.springtech.repository.PersonRepository;
+import ru.danil.springtech.util.job.PersonBackgroundJob;
 
 import java.util.UUID;
 
@@ -19,7 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static ru.danil.springtech.support.PersonTestFixtures.personWithoutPolicy;
+import static ru.danil.springtech.support.PersonTestFixtures.человекБезПолиса;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -28,7 +29,7 @@ import static ru.danil.springtech.support.PersonTestFixtures.personWithoutPolicy
 class PolicyBackgroundJobsTest {
 
     @Autowired
-    private PolicyBackgroundJobs policyBackgroundJobs;
+    private PersonBackgroundJob personBackgroundJob;
 
     @Autowired
     private PersonService personService;
@@ -40,30 +41,32 @@ class PolicyBackgroundJobsTest {
     private JobScheduler jobScheduler;
 
     @Test
-    void compensateDeleteLocalPerson_whenDeleteSucceeds_doesNotScheduleJob() {
-        var saved = personService.createPersonLocal(personWithoutPolicy("Алексей Ким", 28, "121212"));
-        UUID personId = saved.getId();
+    void компенсацияУдаленияЧеловека_когдаУдалениеУспешно_неПланируетЗадачу() {
+        var saved = personService.createPersonLocal(человекБезПолиса("Алексей Ким", 28, "121212"));
+        var personDTO = saved;
 
-        policyBackgroundJobs.compensateDeleteLocalPerson(personId);
+        personBackgroundJob.compensateDeleteLocalPerson(personDTO);
 
-        assertThat(personRepository.findById(personId)).isEmpty();
+        assertThat(personRepository.findById(personDTO.getId())).isEmpty();
         verify(jobScheduler, never()).schedule(any(), any(JobLambda.class));
     }
 
     @Test
-    void compensateDeleteLocalPerson_whenDeleteFails_schedulesBackgroundJob() {
+    void компенсацияУдаленияЧеловека_когдаУдалениеПадает_планируетФоновуюЗадачу() {
         UUID personId = UUID.randomUUID();
         PersonService failingPersonService = org.mockito.Mockito.mock(PersonService.class);
-        doThrow(new RuntimeException("db unavailable")).when(failingPersonService).deletePersonById(personId);
+        doThrow(new RuntimeException("база данных недоступна")).when(failingPersonService).deletePersonById(personId);
 
-        PolicyBackgroundJobs jobs = new PolicyBackgroundJobs(
+        PersonBackgroundJob jobs = new PersonBackgroundJob(
                 failingPersonService,
-                org.mockito.Mockito.mock(MedicineIntegrationService.class),
-                org.mockito.Mockito.mock(ru.danil.springtech.config.RetryBudgetConfig.class),
+                org.mockito.Mockito.mock(ru.danil.springtech.mapper.EntityDTOJobMapper.class),
+                org.mockito.Mockito.mock(DeferredJobService.class),
                 jobScheduler
         );
 
-        jobs.compensateDeleteLocalPerson(personId);
+        var personDTO = человекБезПолиса("Тест Тестов", 30, "123456");
+        personDTO.setId(personId);
+        jobs.compensateDeleteLocalPerson(personDTO);
 
         verify(jobScheduler).schedule(any(), any(JobLambda.class));
     }

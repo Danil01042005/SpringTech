@@ -1,56 +1,126 @@
 package ru.danil.springtech.config;
 
 import feign.FeignException;
-import org.springframework.beans.factory.annotation.Value;
+import jakarta.annotation.PostConstruct;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-import java.util.concurrent.atomic.AtomicInteger;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+@Getter
+@Setter
+@RequiredArgsConstructor
 @Configuration
+@ConfigurationProperties(prefix = "retry-config")
 public class RetryBudgetConfig {
+    private final StringRedisTemplate redisTemplate;
+    private final Map<String, RedisScript<Long>> redisScripts;
 
-    @Value("${retry-config.retry-budget.max-capacity:100}")
+    private String tokenBudgetKeyName;
+    private int maxAttempts;
+    private long delay;
+    private double multiplier;
     private int maxCapacity;
-
-    @Value("${retry-config.retry-budget.success-request:1}")
     private int successRequest;
-
-    @Value("${retry-config.retry-budget.retry-cost:10}")
     private int retryCost;
+    private List<Integer> commandRetryableStatuses;
+    private List<Integer> commandNotRetryableStatuses;
+    private List<Integer> queryRetryableStatuses;
+    private List<Integer> queryNotRetryableStatuses;
 
-    private final AtomicInteger tokenCounter = new AtomicInteger(100);
+    @PostConstruct
+    public void initKey() {
+        redisTemplate.opsForValue().setIfAbsent(tokenBudgetKeyName, String.valueOf(maxCapacity));
+    }
+
+    public boolean isCommandRetryable(Throwable throwable) {
+        return checkRetryStatus(throwable, commandRetryableStatuses, commandNotRetryableStatuses);
+    }
+
+    public boolean isCommandNotRetryable(FeignException error) {
+        return commandNotRetryableStatuses != null && commandNotRetryableStatuses.contains(error.status());
+    }
+
+    public boolean isQueryRetryable(Throwable throwable) {
+        return checkRetryStatus(throwable, queryRetryableStatuses, queryNotRetryableStatuses);
+    }
+
+    public boolean isQueryNotRetryable(FeignException error) {
+        return queryNotRetryableStatuses != null && queryNotRetryableStatuses.contains(error.status());
+    }
+
+    public boolean retry(Throwable throwable) {
+        if (!isCommandRetryable(throwable)) {
+            return false;
+        }
+        return retryScriptExecute();
+    }
 
     public void successRequest() {
-        tokenCounter.updateAndGet(tokens -> Math.min(maxCapacity, tokens + successRequest));
+        RedisScript<Long> script = redisScripts.get("successRequest");
+        redisTemplate.execute(
+                script,
+                Collections.singletonList(tokenBudgetKeyName),
+                String.valueOf(successRequest),
+                String.valueOf(maxCapacity)
+        );
     }
-    //Проверя подходит ли статус ошибки для ретрая , чтобы игнорировать not found и прочую нечесть
-    private boolean isRetryable(Throwable throwable) {
+
+    public boolean retryScriptExecute() {
+        RedisScript<Long> script = redisScripts.get("retry");
+        Long result = redisTemplate.execute(
+                script,
+                Collections.singletonList(tokenBudgetKeyName),
+                String.valueOf(retryCost)
+        );
+        return result != null && result >= 0;
+    }
+
+    public boolean retryQuery(Throwable throwable) {
+        if (!isQueryRetryable(throwable)) {
+            return false;
+        }
+        return retryScriptExecute();
+    }
+
+    public boolean shouldCompensate(FeignException error, boolean afterTimeoutVerify) {
+        if (!isCommandNotRetryable(error)) {
+            return false;
+        }
+        if (error.status() == 404) {
+            return !afterTimeoutVerify;
+        }
+        return true;
+    }
+
+    public boolean shouldRetryLater(FeignException error) {
+        if (error.status() == -1) {
+            return true;
+        }
+        if (isCommandRetryable(error)) {
+            return true;
+        }
+        return error.status() == 404;
+    }
+
+    private boolean checkRetryStatus(Throwable throwable, List<Integer> retryable, List<Integer> notRetryable) {
         if (!(throwable instanceof FeignException e)) {
             return false;
         }
-
         int status = e.status();
-        return switch (status) {
-            case -1, 429, 500,502,503,504 -> true;
-            default -> false;
-        };
-    }
-
-    // В анотацие которую я создал есть xceptionExpression = "@retryBudgetConfig.retry(#root)"
-    // - root это что то типо плейсхолдера который будет перехватывать все исключения и вызывать этот метод с проверкой статуса
-    public boolean retry(Throwable throwable) {
-        if(isRetryable(throwable)) {
-            return retry();
+        if (notRetryable != null && notRetryable.contains(status)) {
+            return false;
         }
-        return false;
-    }
-
-    public boolean retry() {
-        while (true) {
-            int tokens = tokenCounter.get();
-            if (tokens < retryCost) return false;
-            if (tokenCounter.compareAndSet(tokens, tokens - retryCost)) {
-                return true;
-            }
+        if (status == -1) {
+            return true;
         }
+        return retryable != null && retryable.contains(status);
     }
 }

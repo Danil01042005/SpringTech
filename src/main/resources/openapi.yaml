@@ -382,7 +382,6 @@ components:
         - fullName
         - age
         - passport
-        - policy
       properties:
         id:
           type: string
@@ -400,6 +399,10 @@ components:
           $ref: '#/components/schemas/PassportDTO'
         policy:
           $ref: '#/components/schemas/PolicyDTO'
+        policyStatus:
+          $ref: '#/components/schemas/PolicyStatus'
+        policyJobStatus:
+          $ref: '#/components/schemas/PolicyJobStatus'
     PassportDTO:
       required:
         - passportNumber
@@ -449,6 +452,13 @@ components:
           type: string
           minLength: 4
           example: Gorko 2
+
+    PolicyStatus:
+      type: string
+      enum: [PENDING, COMPLETED, FAILED, COMPENSATING]
+    PolicyJobStatus:
+      type: integer
+      enum: [200, 403, 503]
 
     ErrorResponse:
       type: object

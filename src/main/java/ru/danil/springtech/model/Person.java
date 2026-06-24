@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+import ru.danil.springtech.model.enums.PersonPolicyStatus;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -44,6 +45,10 @@ public class Person {
     @OneToOne(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
     private Passport passport;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "policy_status")
+    private PersonPolicyStatus policyStatus;
+
     public void setPassport(Passport passport) {
         this.passport = passport;
         passport.setPerson(this);
@@ -68,6 +73,8 @@ public class Person {
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 ", isDeleted=" + isDeleted +
+                ", passport=" + passport +
+                ", policyStatus=" + policyStatus +
                 '}';
     }
 }

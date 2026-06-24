@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.Optional;
 import jakarta.annotation.Generated;
 
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-05-31T20:39:09.040862300+03:00[Europe/Moscow]")
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-24T17:56:52.707955700+03:00[Europe/Moscow]")
 @Validated
 @Tag(name = "person and passport", description = "the person and passport API")
 @RequestMapping("${openapi.springTech.base-path:}")

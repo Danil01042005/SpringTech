@@ -44,16 +44,40 @@ api:
   medicine-url: http://medicine:8081/policy
 
 retry-config:
+  command-retryable-statuses:
+    - 429
+    - 500
+    - 502
+    - 503
+    - 504
+  command-not-retryable-statuses:
+    - 400
+    - 401
+    - 403
+    - 404
+  query-retryable-statuses:
+    - 429
+    - 503
+    - 504
+  query-not-retryable-statuses:
+    - 400
+    - 401
+    - 403
+    - 404
+    - 500
+  token-budget-key-name: "tokenBudget"
   max-attempts: 2
   delay: 100
   multiplier: 2
-  retry-budget:
-    max-capacity: 100
-    success-request: 1
-    retry-cost: 10
+  max-capacity: 100
+  success-request: 1
+  retry-cost: 10
 
 jobrunr:
   background-job-server:
     enabled: false
   dashboard:
     enabled: false
+
+scheduler-config:
+  delay: 300000

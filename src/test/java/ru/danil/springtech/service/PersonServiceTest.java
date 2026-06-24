@@ -18,7 +18,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static ru.danil.springtech.support.PersonTestFixtures.personWithoutPolicy;
+import static ru.danil.springtech.support.PersonTestFixtures.человекБезПолиса;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -36,7 +36,7 @@ class PersonServiceTest {
     private CacheManager cacheManager;
 
     @BeforeEach
-    void setUp() {
+    void передКаждымТестом() {
         Cache cache = cacheManager.getCache("PERSON_CACHE");
         if (cache != null) {
             cache.clear();
@@ -45,8 +45,8 @@ class PersonServiceTest {
     }
 
     @Test
-    void createPersonLocal_persistsPersonWithPassport() {
-        var input = personWithoutPolicy("Иван Петров", 25, "123456");
+    void созданиеЧеловека_сохраняетЧеловекаСПаспортом() {
+        var input = человекБезПолиса("Иван Петров", 25, "123456");
 
         var saved = personService.createPersonLocal(input);
 
@@ -59,7 +59,7 @@ class PersonServiceTest {
     }
 
     @Test
-    void getLocalPerson_whenPersonMissing_throwsObjectNotFoundException() {
+    void получениеЧеловека_когдаНеНайден_бросаетObjectNotFoundException() {
         UUID missingId = UUID.randomUUID();
 
         assertThatThrownBy(() -> personService.getLocalPerson(missingId))
@@ -68,8 +68,8 @@ class PersonServiceTest {
     }
 
     @Test
-    void deletePersonById_removesPersonFromDatabase() {
-        var saved = personService.createPersonLocal(personWithoutPolicy("Елена Волкова", 35, "998877"));
+    void удалениеЧеловека_убираетЗаписьИзБазы() {
+        var saved = personService.createPersonLocal(человекБезПолиса("Елена Волкова", 35, "998877"));
         UUID personId = saved.getId();
 
         personService.deletePersonById(personId);
@@ -79,8 +79,8 @@ class PersonServiceTest {
 
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    void getLocalPerson_secondCallReadsFromRedisCache() {
-        var saved = personService.createPersonLocal(personWithoutPolicy("Наталья Кузнецова", 29, "556644"));
+    void получениеЧеловека_второйВызовЧитаетИзКэша() {
+        var saved = personService.createPersonLocal(человекБезПолиса("Наталья Кузнецова", 29, "556644"));
         UUID personId = saved.getId();
 
         personService.getLocalPerson(personId);

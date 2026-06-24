@@ -9,7 +9,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-//Вынес в анотация мои ретраи, чтобы они огрымными над методами не весели
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Retryable(retryFor = FeignException.class, maxAttemptsExpression = "${retry-config.max-attempts}",

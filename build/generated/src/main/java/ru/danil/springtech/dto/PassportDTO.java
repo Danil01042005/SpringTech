@@ -17,7 +17,7 @@ import jakarta.annotation.Generated;
  * PassportDTO
  */
 
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-05-31T20:39:09.040862300+03:00[Europe/Moscow]")
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-24T17:56:52.707955700+03:00[Europe/Moscow]")
 public class PassportDTO {
 
   private String passportNumber;

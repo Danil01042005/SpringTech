@@ -1,23 +1,47 @@
 package ru.danil.springtech;
-import org.jobrunr.configuration.JobRunr;
-import org.jobrunr.scheduling.JobScheduler;
-import org.jobrunr.server.JobActivator;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
-import javax.sql.DataSource;
+import java.util.HashMap;
+import java.util.Map;
 
 @SpringBootApplication
 @EnableCaching
 @EnableFeignClients
 @EnableRetry
+@EnableScheduling
 public class SpringTechApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(SpringTechApplication.class, args);
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
+
+    @Bean
+    public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+        return new StringRedisTemplate(redisConnectionFactory);
+    }
+
+    @Bean
+    public Map<String, RedisScript<Long>> budgetSpendScript() {
+        Map<String, RedisScript<Long>> scripts = new HashMap<>();
+        scripts.put("retry", RedisScript.of(new ClassPathResource("scripts/retry-budget-decr.lua"), Long.class));
+        scripts.put("successRequest", RedisScript.of(new ClassPathResource("scripts/retry-budget-incr.lua"), Long.class));
+        return scripts;
     }
 }

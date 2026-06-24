@@ -11,7 +11,7 @@ import org.springframework.test.context.ActiveProfiles;
 class SpringTechApplicationTests {
 
     @Test
-    void contextLoads() {
+    void контекстПоднимается() {
     }
 
 }
