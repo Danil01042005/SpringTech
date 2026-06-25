@@ -1,4 +1,4 @@
-package ru.danil.springtech.annotation;
+package ru.danil.springtech.util.annotation;
 
 import feign.FeignException;
 import org.springframework.retry.annotation.Backoff;

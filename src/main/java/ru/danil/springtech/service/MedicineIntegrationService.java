@@ -3,7 +3,7 @@ package ru.danil.springtech.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.danil.springtech.annotation.MedicineRetry;
+import ru.danil.springtech.util.annotation.MedicineRetry;
 import ru.danil.springtech.client.MedicineClient;
 import ru.danil.springtech.dto.PolicyDTO;
 

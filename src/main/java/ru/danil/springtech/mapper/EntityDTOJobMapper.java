@@ -1,10 +1,10 @@
 package ru.danil.springtech.mapper;
 
+import lombok.RequiredArgsConstructor;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 import org.mapstruct.ReportingPolicy;
-import org.springframework.beans.factory.annotation.Autowired;
 import ru.danil.springtech.dto.PersonDTO;
 import ru.danil.springtech.dto.PolicyDTO;
 import ru.danil.springtech.model.DeferredJob;
@@ -14,10 +14,9 @@ import java.util.UUID;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
         unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@RequiredArgsConstructor
 public abstract class EntityDTOJobMapper {
-
-    @Autowired
-    protected JsonMapper jsonMapper;
+    private final JsonMapper jsonMapper;
 
     @Mapping(target = "payload", expression = "java(jsonMapper.toJson(personDTO))")
     @Mapping(target = "jobId", ignore = true)
