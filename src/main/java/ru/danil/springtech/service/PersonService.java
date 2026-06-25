@@ -3,7 +3,6 @@ package ru.danil.springtech.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,17 +28,11 @@ public class PersonService {
     private final PersonPolicyStatusMapper personPolicyStatusMapper;
 
     @Transactional
-    @CachePut(value = PERSON_CACHE, key = "#result.id")
     public PersonDTO createPersonLocal(PersonDTO personDTO) {
         Person person = personMapper.toPerson(personDTO);
-        return personMapper.toPersonDTO(personRepository.save(person));
-    }
-
-    @Transactional
-    @CachePut(value = PERSON_CACHE, key = "#result.id")
-    public PersonDTO createPersonLocalWithPolicy(PersonDTO personDTO) {
-        Person person = personMapper.toPerson(personDTO);
-        person.setPolicyStatus(PersonPolicyStatus.PENDING);
+        if (personDTO.getPolicy() != null) {
+            person.setPolicyStatus(PersonPolicyStatus.PENDING);
+        }
         return personMapper.toPersonDTO(personRepository.save(person));
     }
 

@@ -25,11 +25,11 @@ public class PersonSagaOrchestrator {
     private final RetryBudgetConfig retryBudgetConfig;
 
     public PersonDTO createPerson(PersonDTO newPersonDTO) {
+        PersonDTO personDTO = personService.createPersonLocal(newPersonDTO);
         if (newPersonDTO.getPolicy() == null) {
-            return personService.createPersonLocal(newPersonDTO);
+            return personDTO;
         }
 
-        PersonDTO personDTO = personService.createPersonLocalWithPolicy(newPersonDTO);
         PolicyDTO newPolicyDTO = newPersonDTO.getPolicy();
         try {
             PolicyDTO policy = medicineIntegrationService.createPolicyDTO(personDTO.getId(), newPolicyDTO);
