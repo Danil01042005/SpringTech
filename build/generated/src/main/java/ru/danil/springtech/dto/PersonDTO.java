@@ -8,7 +8,6 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.UUID;
 import ru.danil.springtech.dto.PassportDTO;
 import ru.danil.springtech.dto.PolicyDTO;
-import ru.danil.springtech.dto.PolicyJobStatus;
 import ru.danil.springtech.dto.PolicyStatus;
 import java.time.OffsetDateTime;
 import jakarta.validation.Valid;
@@ -23,7 +22,7 @@ import jakarta.annotation.Generated;
  * PersonDTO
  */
 
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-24T17:56:52.707955700+03:00[Europe/Moscow]")
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-07-01T15:48:20.452899200+03:00[Europe/Moscow]")
 public class PersonDTO {
 
   private UUID id;
@@ -37,8 +36,6 @@ public class PersonDTO {
   private PolicyDTO policy;
 
   private PolicyStatus policyStatus;
-
-  private PolicyJobStatus policyJobStatus;
 
   public PersonDTO() {
     super();
@@ -174,26 +171,6 @@ public class PersonDTO {
     this.policyStatus = policyStatus;
   }
 
-  public PersonDTO policyJobStatus(PolicyJobStatus policyJobStatus) {
-    this.policyJobStatus = policyJobStatus;
-    return this;
-  }
-
-  /**
-   * Get policyJobStatus
-   * @return policyJobStatus
-  */
-  @Valid 
-  @Schema(name = "policyJobStatus", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-  @JsonProperty("policyJobStatus")
-  public PolicyJobStatus getPolicyJobStatus() {
-    return policyJobStatus;
-  }
-
-  public void setPolicyJobStatus(PolicyJobStatus policyJobStatus) {
-    this.policyJobStatus = policyJobStatus;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -208,13 +185,12 @@ public class PersonDTO {
         Objects.equals(this.age, personDTO.age) &&
         Objects.equals(this.passport, personDTO.passport) &&
         Objects.equals(this.policy, personDTO.policy) &&
-        Objects.equals(this.policyStatus, personDTO.policyStatus) &&
-        Objects.equals(this.policyJobStatus, personDTO.policyJobStatus);
+        Objects.equals(this.policyStatus, personDTO.policyStatus);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, fullName, age, passport, policy, policyStatus, policyJobStatus);
+    return Objects.hash(id, fullName, age, passport, policy, policyStatus);
   }
 
   @Override
@@ -227,7 +203,6 @@ public class PersonDTO {
     sb.append("    passport: ").append(toIndentedString(passport)).append("\n");
     sb.append("    policy: ").append(toIndentedString(policy)).append("\n");
     sb.append("    policyStatus: ").append(toIndentedString(policyStatus)).append("\n");
-    sb.append("    policyJobStatus: ").append(toIndentedString(policyJobStatus)).append("\n");
     sb.append("}");
     return sb.toString();
   }

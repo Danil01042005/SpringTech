@@ -11,7 +11,7 @@ import ru.danil.springtech.model.Movie;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-06-24T17:56:58+0300",
+    date = "2026-07-01T15:48:23+0300",
     comments = "version: 1.6.3, compiler: IncrementalProcessingEnvironment from gradle-language-java-9.4.1.jar, environment: Java 21.0.11 (Microsoft)"
 )
 @Component

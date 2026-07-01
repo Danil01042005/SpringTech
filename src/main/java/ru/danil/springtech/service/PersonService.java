@@ -8,13 +8,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.danil.springtech.dto.PersonDTO;
 import ru.danil.springtech.dto.PolicyDTO;
+import ru.danil.springtech.dto.PolicyStatus;
 import ru.danil.springtech.exception.ObjectNotFoundException;
 import ru.danil.springtech.mapper.PersonMapper;
-import ru.danil.springtech.mapper.PersonPolicyStatusMapper;
 import ru.danil.springtech.model.Person;
-import ru.danil.springtech.model.enums.PersonPolicyStatus;
 import ru.danil.springtech.repository.PersonRepository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -25,24 +25,17 @@ public class PersonService {
 
     private final PersonRepository personRepository;
     private final PersonMapper personMapper;
-    private final PersonPolicyStatusMapper personPolicyStatusMapper;
 
     @Transactional
-    public PersonDTO createPersonLocal(PersonDTO personDTO) {
+    public PersonDTO createPerson(PersonDTO personDTO) {
         Person person = personMapper.toPerson(personDTO);
-        if (personDTO.getPolicy() != null) {
-            person.setPolicyStatus(PersonPolicyStatus.PENDING);
-        }
         return personMapper.toPersonDTO(personRepository.save(person));
     }
 
     @Transactional(readOnly = true)
     @Cacheable(value = PERSON_CACHE, key = "#id")
     public PersonDTO getLocalPerson(UUID id) {
-        Person person = personRepository.findPersonById(id).orElseThrow(() -> {
-            log.error("Человек с таким айди не найден {}", id);
-            return new ObjectNotFoundException("Человек с таким айди не найден " + id);
-        });
+        Person person = returnPersonOrThrow(personRepository.findPersonById(id), id);
         log.debug("Найден человек: {}", person.toString());
         return personMapper.toPersonDTO(person);
     }
@@ -56,35 +49,41 @@ public class PersonService {
     @Transactional
     @CacheEvict(value = PERSON_CACHE, key = "#id")
     public PersonDTO updatePerson(UUID id, PersonDTO updatedPersonDTO) {
-        Person person = personRepository.findPersonById(id).orElseThrow(() -> {
-            log.error("Человек с таким айди не найден {}", id);
-            return new ObjectNotFoundException("Человек с таким айди не найден " + id);
-        });
+        Person person = returnPersonOrThrow(personRepository.findPersonById(id), id);
         personMapper.updatePerson(updatedPersonDTO, person);
         return personMapper.toPersonDTO(person);
     }
 
     @Transactional
     @CacheEvict(value = PERSON_CACHE, key = "#id")
-    public void updatePolicyStatus(UUID id, PersonPolicyStatus policyStatus) {
-        setPolicyStatus(id, policyStatus);
-    }
-
-    public PersonDTO enrichPolicy(PersonDTO personDTO, PolicyDTO policy) {
-        personDTO.setPolicy(policy);
-        return personDTO;
+    public PersonDTO updatePolicyStatus(UUID id, PolicyStatus policyStatus) {
+        Person person = personRepository.getReferenceById(id);
+        person.setPolicyStatus(policyStatus);
+        return personMapper.toPersonDTO(person);
     }
 
     @Transactional
     @CacheEvict(value = PERSON_CACHE, key = "#personDTO.id")
-    public PersonDTO attachPolicy(PersonDTO personDTO, PolicyDTO policy, PersonPolicyStatus policyStatus) {
+    public PersonDTO attachPolicy(PersonDTO personDTO, PolicyDTO policyDTO, PolicyStatus policyStatus) {
+        personDTO.setPolicy(policyDTO);
+        personDTO.setPolicyStatus(policyStatus);
         setPolicyStatus(personDTO.getId(), policyStatus);
-        personDTO.setPolicy(policy);
-        personDTO.setPolicyStatus(personPolicyStatusMapper.toDto(policyStatus));
         return personDTO;
     }
 
-    private void setPolicyStatus(UUID id, PersonPolicyStatus policyStatus) {
+    private void setPolicyStatus(UUID id, PolicyStatus policyStatus) {
         personRepository.getReferenceById(id).setPolicyStatus(policyStatus);
+    }
+
+    public Person returnPersonOrThrow(Optional<Person> person, UUID personId) {
+        return person.orElseThrow(() -> {
+            log.error("Человек с таким айди не найден {}", personId);
+            return new ObjectNotFoundException("Человек с таким айди не найден " + personId);
+        });
+    }
+
+    public PersonDTO attachPolicy(PersonDTO personDTO, PolicyDTO policyDTO) {
+        personDTO.setPolicy(policyDTO);
+        return personDTO;
     }
 }

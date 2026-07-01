@@ -9,13 +9,11 @@ import ru.danil.springtech.dto.PersonDTO;
 import ru.danil.springtech.model.Person;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
-        uses = PersonPolicyStatusMapper.class,
         unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface PersonMapper {
     @Mapping(target = "policyStatus", ignore = true)
     Person toPerson(PersonDTO personDTO);
 
-    @Mapping(target = "policyJobStatus", ignore = true)
     PersonDTO toPersonDTO(Person person);
 
     @Mapping(target = "policyStatus", ignore = true)

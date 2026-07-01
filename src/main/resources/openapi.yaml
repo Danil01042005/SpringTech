@@ -401,8 +401,6 @@ components:
           $ref: '#/components/schemas/PolicyDTO'
         policyStatus:
           $ref: '#/components/schemas/PolicyStatus'
-        policyJobStatus:
-          $ref: '#/components/schemas/PolicyJobStatus'
     PassportDTO:
       required:
         - passportNumber
@@ -456,9 +454,6 @@ components:
     PolicyStatus:
       type: string
       enum: [PENDING, COMPLETED, FAILED, COMPENSATING]
-    PolicyJobStatus:
-      type: integer
-      enum: [200, 403, 503]
 
     ErrorResponse:
       type: object

@@ -22,20 +22,14 @@ public class MedicineIntegrationService {
     }
 
     @MedicineRetry
-    public PolicyDTO getPolicyByIdDTO(UUID personId){
+    public PolicyDTO getPolicyById(UUID personId){
         PolicyDTO policyDTO = medicineClient.getPolicyByIdDTO(personId);
         log.debug("Найден полис с айди {}, номер полиса: {}", personId , policyDTO.getPolicyNumber());
         return policyDTO;
     }
 
-    public PolicyDTO getPolicyByIdDTOWithoutRetry(UUID personId){
-        PolicyDTO policyDTO = medicineClient.getPolicyByIdDTO(personId);
-        log.debug("Найден полис с айди {}, номер полиса: {}", personId , policyDTO.getPolicyNumber());
-        return policyDTO;
-    }
-
-    public PolicyDTO createPolicyDTOWithoutRetry(UUID personId, PolicyDTO policyDTO) {
+    public void createPolicyWithoutRetry(UUID personId, PolicyDTO policyDTO) {
         policyDTO.setPersonId(personId);
-        return medicineClient.createPolicyDTO(policyDTO);
+        medicineClient.createPolicyDTO(policyDTO);
     }
 }

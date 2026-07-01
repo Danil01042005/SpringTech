@@ -21,7 +21,7 @@ import jakarta.annotation.Generated;
  * ActorDTO
  */
 
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-06-24T17:56:52.707955700+03:00[Europe/Moscow]")
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-07-01T15:48:20.452899200+03:00[Europe/Moscow]")
 public class ActorDTO {
 
   private String name;

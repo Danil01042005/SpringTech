@@ -4,12 +4,11 @@ import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.danil.springtech.config.RetryBudgetConfig;
 import ru.danil.springtech.dto.PersonDTO;
 import ru.danil.springtech.dto.PolicyDTO;
+import ru.danil.springtech.dto.PolicyStatus;
+import ru.danil.springtech.exception.ObjectNotFoundException;
 import ru.danil.springtech.exception.ServiceUnavailableException;
-import ru.danil.springtech.model.enums.PersonPolicyStatus;
-import ru.danil.springtech.util.job.PersonBackgroundJob;
 import ru.danil.springtech.util.job.PolicyBackgroundJob;
 
 import java.util.UUID;
@@ -21,59 +20,67 @@ public class PersonSagaOrchestrator {
     private final PersonService personService;
     private final MedicineIntegrationService medicineIntegrationService;
     private final PolicyBackgroundJob policyBackgroundJob;
-    private final PersonBackgroundJob personBackgroundJob;
-    private final RetryBudgetConfig retryBudgetConfig;
 
-    public PersonDTO createPerson(PersonDTO newPersonDTO) {
-        PersonDTO personDTO = personService.createPersonLocal(newPersonDTO);
-        if (newPersonDTO.getPolicy() == null) {
+    private PersonDTO createPersonOnly(PersonDTO personDTO) {
+        return personService.createPerson(personDTO);
+    }
+
+    private PersonDTO createPersonWithPolicy(PersonDTO newPersonDTO) {
+        PersonDTO personDTO = createPersonOnly(newPersonDTO);
+        try {
+            PolicyDTO policyDTO = medicineIntegrationService.createPolicyDTO(personDTO.getId(), newPersonDTO.getPolicy());
+            log.debug("Полис успешно создан: {}", policyDTO.toString());
+            return personService.attachPolicy(personDTO, policyDTO, PolicyStatus.COMPLETED);
+        } catch (FeignException e) {
+            policyBackgroundJob.scheduleCreatePolicyWithBudget(personDTO, newPersonDTO.getPolicy());
+            personDTO.setPolicyStatus(PolicyStatus.PENDING);
+            personService.updatePolicyStatus(personDTO.getId(), PolicyStatus.PENDING);
             return personDTO;
         }
+    }
 
-        PolicyDTO newPolicyDTO = newPersonDTO.getPolicy();
+    public PersonDTO create(PersonDTO personDTO) {
+        return switch (personDTO){
+            case PersonDTO p when p.getPolicy() != null -> createPersonWithPolicy(personDTO);
+            default -> createPersonOnly(personDTO);
+        };
+    }
+
+    public PersonDTO getLocalPersonById(UUID personId) {
+        return personService.getLocalPerson(personId);
+    }
+
+    public PolicyDTO getPolicyDTO(UUID personId){
         try {
-            PolicyDTO policy = medicineIntegrationService.createPolicyDTO(personDTO.getId(), newPolicyDTO);
-            log.debug("Полис успешно создан: {}", policy);
-            return personService.attachPolicy(personDTO, policy, PersonPolicyStatus.COMPLETED);
-        } catch (FeignException e) {
-            return handlePolicyCreateFailure(personDTO, newPolicyDTO, e, false);
+            return medicineIntegrationService.getPolicyById(personId);
+        } catch (Exception e) {
+            return handleGetQueryFailure(e, personId);
         }
     }
 
-    private PersonDTO handlePolicyCreateFailure(PersonDTO personDTO, PolicyDTO newPolicyDTO, FeignException error, boolean afterTimeout) {
-        if (retryBudgetConfig.shouldCompensate(error, afterTimeout)) {
-            log.error("Бизнес ошибка при создании полиса для человека {}: статус {}, {}", personDTO.toString(), error.status(), error.getMessage());
-            compensateAndThrow(personDTO, "Не удалось создать человека: ошибка данных");
-        }
-        if (!afterTimeout && error.status() == -1) {
-            return handleCreateTimeout(personDTO, newPolicyDTO);
-        }
-        if (retryBudgetConfig.shouldRetryLater(error)) {
-            return schedulePolicyRetry(personDTO, newPolicyDTO, error);
-        }
-        log.error("Неожиданная ошибка медицины при создании полиса для человека {}: статус {}", personDTO.toString(), error.status());
-        throw error;
-    }
-
-    private PersonDTO handleCreateTimeout(PersonDTO personDTO, PolicyDTO policyTemplate) {
-        UUID personId = personDTO.getId();
-        try {
-            PolicyDTO policy = medicineIntegrationService.getPolicyByIdDTOWithoutRetry(personId);
-            log.debug("Полис создан несмотря на таймаут: {}", policy.getPolicyNumber());
-            return personService.attachPolicy(personDTO, policy, PersonPolicyStatus.COMPLETED);
-        } catch (FeignException e) {
-            return handlePolicyCreateFailure(personDTO, policyTemplate, e, true);
+    public PolicyDTO handleGetQueryFailure(Exception e, UUID personId) {
+        switch (e) {
+            case FeignException.NotFound notFound-> {
+                log.debug("Полис для человека {}  не найден, отдаём данные без полиса", personId);
+                return null;
+            }
+            case FeignException f -> {
+                log.error("Временная недоступность медицины при запросе полиса для человека: {}", personId);
+                return null;
+            }
+            default -> {
+                log.error("Неожиданная ошибка {}", personId);
+                return null;
+            }
         }
     }
 
-    private PersonDTO schedulePolicyRetry(PersonDTO personDTO, PolicyDTO newPolicyDTO, FeignException error) {
-        log.debug("Техническая ошибка Медицины (статус {}), фоновое создание полиса для человека {}: {}", error.status(), personDTO.toString(), error.getMessage());
-        policyBackgroundJob.scheduleCreatePolicyWithBudget(personDTO, newPolicyDTO);
-        return personService.enrichPolicy(personDTO, null);
-    }
-
-    private void compensateAndThrow(PersonDTO personDTO, String message) {
-        personBackgroundJob.compensateDeleteLocalPerson(personDTO);
-        throw new ServiceUnavailableException(message);
+    public PersonDTO getPerson(UUID personId){
+        PersonDTO personDTO = getLocalPersonById(personId);
+        PolicyDTO policyDTO = getPolicyDTO(personId);
+        if(policyDTO != null) {
+            return personService.attachPolicy(personDTO, policyDTO);
+        }
+        return personDTO;
     }
 }

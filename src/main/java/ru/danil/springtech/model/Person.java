@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import ru.danil.springtech.model.enums.PersonPolicyStatus;
+import ru.danil.springtech.dto.PolicyStatus;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -47,7 +47,7 @@ public class Person {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "policy_status")
-    private PersonPolicyStatus policyStatus;
+    private PolicyStatus policyStatus;
 
     public void setPassport(Passport passport) {
         this.passport = passport;

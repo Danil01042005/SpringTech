@@ -55,16 +55,6 @@ retry-config:
     - 401
     - 403
     - 404
-  query-retryable-statuses:
-    - 429
-    - 503
-    - 504
-  query-not-retryable-statuses:
-    - 400
-    - 401
-    - 403
-    - 404
-    - 500
   token-budget-key-name: "tokenBudget"
   max-attempts: 2
   delay: 100

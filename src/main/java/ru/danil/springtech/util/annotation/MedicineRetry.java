@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Retryable(retryFor = FeignException.class, maxAttemptsExpression = "${retry-config.max-attempts}",
         backoff = @Backoff(delayExpression = "${retry-config.delay}" , multiplierExpression = "${retry-config.multiplier}", random = true),
-        exceptionExpression = "@retryBudgetConfig.retry(#root)"
+        exceptionExpression = "@retryBudgetService.retry(#root)"
 )
 public @interface MedicineRetry {
 }

@@ -1,4 +1,4 @@
-package ru.danil.springtech.config;
+package ru.danil.springtech.service;
 
 import feign.FeignException;
 import jakarta.annotation.PostConstruct;
@@ -6,9 +6,9 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
@@ -17,9 +17,9 @@ import java.util.Map;
 @Getter
 @Setter
 @RequiredArgsConstructor
-@Configuration
+@Service
 @ConfigurationProperties(prefix = "retry-config")
-public class RetryBudgetConfig {
+public class RetryBudgetService {
     private final StringRedisTemplate redisTemplate;
     private final Map<String, RedisScript<Long>> redisScripts;
 
@@ -32,8 +32,6 @@ public class RetryBudgetConfig {
     private int retryCost;
     private List<Integer> commandRetryableStatuses;
     private List<Integer> commandNotRetryableStatuses;
-    private List<Integer> queryRetryableStatuses;
-    private List<Integer> queryNotRetryableStatuses;
 
     @PostConstruct
     public void initKey() {
@@ -42,18 +40,6 @@ public class RetryBudgetConfig {
 
     public boolean isCommandRetryable(Throwable throwable) {
         return checkRetryStatus(throwable, commandRetryableStatuses, commandNotRetryableStatuses);
-    }
-
-    public boolean isCommandNotRetryable(FeignException error) {
-        return commandNotRetryableStatuses != null && commandNotRetryableStatuses.contains(error.status());
-    }
-
-    public boolean isQueryRetryable(Throwable throwable) {
-        return checkRetryStatus(throwable, queryRetryableStatuses, queryNotRetryableStatuses);
-    }
-
-    public boolean isQueryNotRetryable(FeignException error) {
-        return queryNotRetryableStatuses != null && queryNotRetryableStatuses.contains(error.status());
     }
 
     public boolean retry(Throwable throwable) {
@@ -81,33 +67,6 @@ public class RetryBudgetConfig {
                 String.valueOf(retryCost)
         );
         return result != null && result >= 0;
-    }
-
-    public boolean retryQuery(Throwable throwable) {
-        if (!isQueryRetryable(throwable)) {
-            return false;
-        }
-        return retryScriptExecute();
-    }
-
-    public boolean shouldCompensate(FeignException error, boolean afterTimeoutVerify) {
-        if (!isCommandNotRetryable(error)) {
-            return false;
-        }
-        if (error.status() == 404) {
-            return !afterTimeoutVerify;
-        }
-        return true;
-    }
-
-    public boolean shouldRetryLater(FeignException error) {
-        if (error.status() == -1) {
-            return true;
-        }
-        if (isCommandRetryable(error)) {
-            return true;
-        }
-        return error.status() == 404;
     }
 
     private boolean checkRetryStatus(Throwable throwable, List<Integer> retryable, List<Integer> notRetryable) {

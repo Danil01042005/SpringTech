@@ -18,7 +18,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static ru.danil.springtech.support.PersonTestFixtures.человекБезПолиса;
+import static ru.danil.springtech.support.PersonTestFixtures.personWithoutPolicy;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -36,7 +36,7 @@ class PersonServiceTest {
     private CacheManager cacheManager;
 
     @BeforeEach
-    void передКаждымТестом() {
+    void setUp() {
         Cache cache = cacheManager.getCache("PERSON_CACHE");
         if (cache != null) {
             cache.clear();
@@ -45,13 +45,13 @@ class PersonServiceTest {
     }
 
     @Test
-    void созданиеЧеловека_сохраняетЧеловекаСПаспортом() {
-        var input = человекБезПолиса("Иван Петров", 25, "123456");
+    void createPersonSavesPersonWithPassport() {
+        var input = personWithoutPolicy("Ivan Petrov", 25, "123456");
 
-        var saved = personService.createPersonLocal(input);
+        var saved = personService.createPerson(input);
 
         assertThat(saved.getId()).isNotNull();
-        assertThat(saved.getFullName()).isEqualTo("Иван Петров");
+        assertThat(saved.getFullName()).isEqualTo("Ivan Petrov");
         assertThat(saved.getAge()).isEqualTo(25);
         assertThat(saved.getPassport()).isNotNull();
         assertThat(saved.getPassport().getPassportNumber()).isEqualTo("123456");
@@ -59,7 +59,7 @@ class PersonServiceTest {
     }
 
     @Test
-    void получениеЧеловека_когдаНеНайден_бросаетObjectNotFoundException() {
+    void getPersonWhenNotFoundThrowsObjectNotFoundException() {
         UUID missingId = UUID.randomUUID();
 
         assertThatThrownBy(() -> personService.getLocalPerson(missingId))
@@ -68,8 +68,8 @@ class PersonServiceTest {
     }
 
     @Test
-    void удалениеЧеловека_убираетЗаписьИзБазы() {
-        var saved = personService.createPersonLocal(человекБезПолиса("Елена Волкова", 35, "998877"));
+    void deletePersonRemovesRecordFromDatabase() {
+        var saved = personService.createPerson(personWithoutPolicy("Elena Volkova", 35, "998877"));
         UUID personId = saved.getId();
 
         personService.deletePersonById(personId);
@@ -79,8 +79,8 @@ class PersonServiceTest {
 
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    void получениеЧеловека_второйВызовЧитаетИзКэша() {
-        var saved = personService.createPersonLocal(человекБезПолиса("Наталья Кузнецова", 29, "556644"));
+    void getPersonSecondCallReadsFromCache() {
+        var saved = personService.createPerson(personWithoutPolicy("Natalia Kuznetsova", 29, "556644"));
         UUID personId = saved.getId();
 
         personService.getLocalPerson(personId);

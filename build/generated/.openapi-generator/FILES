@@ -12,6 +12,5 @@ src/main/java/ru/danil/springtech/dto/OrderDTO.java
 src/main/java/ru/danil/springtech/dto/PassportDTO.java
 src/main/java/ru/danil/springtech/dto/PersonDTO.java
 src/main/java/ru/danil/springtech/dto/PolicyDTO.java
-src/main/java/ru/danil/springtech/dto/PolicyJobStatus.java
 src/main/java/ru/danil/springtech/dto/PolicyStatus.java
 src/main/java/ru/danil/springtech/dto/UserDTO.java
