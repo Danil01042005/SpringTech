@@ -7,10 +7,9 @@ import org.springframework.stereotype.Service;
 import ru.danil.springtech.dto.PersonDTO;
 import ru.danil.springtech.dto.PolicyDTO;
 import ru.danil.springtech.dto.PolicyStatus;
-import ru.danil.springtech.exception.ObjectNotFoundException;
-import ru.danil.springtech.exception.ServiceUnavailableException;
 import ru.danil.springtech.util.job.PolicyBackgroundJob;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -20,6 +19,7 @@ public class PersonSagaOrchestrator {
     private final PersonService personService;
     private final MedicineIntegrationService medicineIntegrationService;
     private final PolicyBackgroundJob policyBackgroundJob;
+    private final PersonPolicyService personPolicyService;
 
     private PersonDTO createPersonOnly(PersonDTO personDTO) {
         return personService.createPerson(personDTO);
@@ -30,7 +30,7 @@ public class PersonSagaOrchestrator {
         try {
             PolicyDTO policyDTO = medicineIntegrationService.createPolicyDTO(personDTO.getId(), newPersonDTO.getPolicy());
             log.debug("Полис успешно создан: {}", policyDTO.toString());
-            return personService.attachPolicy(personDTO, policyDTO, PolicyStatus.COMPLETED);
+            return personPolicyService.attachPolicy(personDTO, policyDTO, PolicyStatus.COMPLETED);
         } catch (FeignException e) {
             policyBackgroundJob.scheduleCreatePolicyWithBudget(personDTO, newPersonDTO.getPolicy());
             personDTO.setPolicyStatus(PolicyStatus.PENDING);
@@ -50,37 +50,36 @@ public class PersonSagaOrchestrator {
         return personService.getLocalPerson(personId);
     }
 
-    public PolicyDTO getPolicyDTO(UUID personId){
+    public Optional<PolicyDTO> getPolicyDTO(UUID personId){
         try {
             return medicineIntegrationService.getPolicyById(personId);
         } catch (Exception e) {
-            return handleGetQueryFailure(e, personId);
+            Optional<PolicyDTO> policyDTO = handleGetQueryFailure(e, personId);
+            return policyDTO;
         }
     }
 
-    public PolicyDTO handleGetQueryFailure(Exception e, UUID personId) {
+    public Optional<PolicyDTO> handleGetQueryFailure(Exception e, UUID personId) {
         switch (e) {
             case FeignException.NotFound notFound-> {
                 log.debug("Полис для человека {}  не найден, отдаём данные без полиса", personId);
-                return null;
+                return Optional.empty();
             }
             case FeignException f -> {
                 log.error("Временная недоступность медицины при запросе полиса для человека: {}", personId);
-                return null;
+                return Optional.empty();
             }
             default -> {
                 log.error("Неожиданная ошибка {}", personId);
-                return null;
+                return Optional.empty();
             }
         }
     }
 
     public PersonDTO getPerson(UUID personId){
         PersonDTO personDTO = getLocalPersonById(personId);
-        PolicyDTO policyDTO = getPolicyDTO(personId);
-        if(policyDTO != null) {
-            return personService.attachPolicy(personDTO, policyDTO);
-        }
+        Optional<PolicyDTO> policyDTO = getPolicyDTO(personId);
+        policyDTO.ifPresent(policy -> personService.attachPolicyToPerson(personDTO, policy));
         return personDTO;
     }
 }

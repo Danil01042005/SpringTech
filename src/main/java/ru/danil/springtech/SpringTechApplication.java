@@ -36,12 +36,4 @@ public class SpringTechApplication {
     public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
         return new StringRedisTemplate(redisConnectionFactory);
     }
-
-    @Bean
-    public Map<String, RedisScript<Long>> budgetSpendScript() {
-        Map<String, RedisScript<Long>> scripts = new HashMap<>();
-        scripts.put("retry", RedisScript.of(new ClassPathResource("scripts/retry-budget-decr.lua"), Long.class));
-        scripts.put("successRequest", RedisScript.of(new ClassPathResource("scripts/retry-budget-incr.lua"), Long.class));
-        return scripts;
-    }
 }

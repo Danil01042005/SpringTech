@@ -39,18 +39,27 @@ public class PolicyBackgroundJob {
     public void createPolicyWithBudget(PersonDTO personDTO, PolicyDTO policyDTO) {
         UUID personId = personDTO.getId();
         try {
-            checkBudget(personDTO, policyDTO);
-            medicineIntegrationService.createPolicyWithoutRetry(personId, policyDTO);
-            retryBudgetService.successRequest();
-            personService.updatePolicyStatus(personId, PolicyStatus.COMPLETED);
-            log.debug("Фоновое создание полиса успешно для человека {}", personDTO.toString());
+            executePolicyCreation(personDTO, policyDTO);
         } catch (Exception e) {
             handleFailure(e, personId);
         }
     }
 
+    private void executePolicyCreation(PersonDTO personDTO, PolicyDTO policyDTO) {
+        UUID personId = personDTO.getId();
+        checkBudget(personDTO,policyDTO);
+        medicineIntegrationService.createPolicyWithoutRetry(personId, policyDTO);
+        handleSuccess(personId);
+    }
+
+    private void handleSuccess(UUID personId) {
+        retryBudgetService.successRequest();
+        personService.updatePolicyStatus(personId, PolicyStatus.COMPLETED);
+        log.debug("Фоновое создание полиса успешно для человека {}", personId);
+    }
+
     private void checkBudget(PersonDTO personDTO, PolicyDTO policyDTO) {
-        if (!retryBudgetService.retryScriptExecute()) {
+        if (!retryBudgetService.retryBudget()) {
             log.debug("Бюджет токенов исчерпан, откладываем создание полиса для человека {}", personDTO.getId());
             throw new PolicyCreationException("Бюджета токенов не хватило");
         }
@@ -58,18 +67,28 @@ public class PolicyBackgroundJob {
 
     private void handleFailure(Exception e, UUID personId) {
         switch (e) {
-            case FeignException f -> {
-                log.error("Ошибка MedicineService для {}: статус {}", personId, f.status());
-                personService.updatePolicyStatus(personId, PolicyStatus.FAILED);
-            }
-            case PolicyCreationException p -> {
-                log.error("Ошибка создания полиса для {}: {}", personId, p.getMessage());
-                personService.updatePolicyStatus(personId, PolicyStatus.FAILED);
-            }
-            default -> {
-                log.error("Неожиданная ошибка при создании полиса для {}", personId);
-                personService.updatePolicyStatus(personId, PolicyStatus.FAILED);
-            }
+            case FeignException f -> handleFeignException(f, personId);
+            case PolicyCreationException p -> handlePolicyCreationException(p, personId);
+            default -> handleUnexpectedException(e, personId);
         }
+    }
+
+    private void handlePolicyCreationException(PolicyCreationException e, UUID personId) {
+        log.error("Ошибка создания полиса для {}: {}", personId, e.getMessage());
+        markPolicyStatusFailed(personId);
+    }
+
+    private void handleFeignException(FeignException e, UUID personId){
+        log.error("Ошибка MedicineService для {}: статус {}", personId, e.status());
+        markPolicyStatusFailed(personId);
+    }
+
+    private void markPolicyStatusFailed(UUID personId) {
+        personService.updatePolicyStatus(personId, PolicyStatus.FAILED);
+    }
+
+    private void handleUnexpectedException(Exception e, UUID personId) {
+        log.error("Неожиданная ошибка при создании полиса для {}", personId, e);
+        markPolicyStatusFailed(personId);
     }
 }

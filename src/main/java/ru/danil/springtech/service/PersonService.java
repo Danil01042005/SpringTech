@@ -62,27 +62,18 @@ public class PersonService {
         return personMapper.toPersonDTO(person);
     }
 
-    @Transactional
-    @CacheEvict(value = PERSON_CACHE, key = "#personDTO.id")
-    public PersonDTO attachPolicy(PersonDTO personDTO, PolicyDTO policyDTO, PolicyStatus policyStatus) {
-        personDTO.setPolicy(policyDTO);
-        personDTO.setPolicyStatus(policyStatus);
-        setPolicyStatus(personDTO.getId(), policyStatus);
-        return personDTO;
-    }
-
-    private void setPolicyStatus(UUID id, PolicyStatus policyStatus) {
+    public void setPolicyStatusInPerson(UUID id, PolicyStatus policyStatus) {
         personRepository.getReferenceById(id).setPolicyStatus(policyStatus);
     }
 
-    public Person returnPersonOrThrow(Optional<Person> person, UUID personId) {
+    private Person returnPersonOrThrow(Optional<Person> person, UUID personId) {
         return person.orElseThrow(() -> {
             log.error("Человек с таким айди не найден {}", personId);
             return new ObjectNotFoundException("Человек с таким айди не найден " + personId);
         });
     }
 
-    public PersonDTO attachPolicy(PersonDTO personDTO, PolicyDTO policyDTO) {
+    public PersonDTO attachPolicyToPerson(PersonDTO personDTO, PolicyDTO policyDTO) {
         personDTO.setPolicy(policyDTO);
         return personDTO;
     }

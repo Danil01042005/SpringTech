@@ -7,6 +7,7 @@ import ru.danil.springtech.util.annotation.MedicineRetry;
 import ru.danil.springtech.client.MedicineClient;
 import ru.danil.springtech.dto.PolicyDTO;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -22,9 +23,9 @@ public class MedicineIntegrationService {
     }
 
     @MedicineRetry
-    public PolicyDTO getPolicyById(UUID personId){
-        PolicyDTO policyDTO = medicineClient.getPolicyByIdDTO(personId);
-        log.debug("Найден полис с айди {}, номер полиса: {}", personId , policyDTO.getPolicyNumber());
+    public Optional<PolicyDTO> getPolicyById(UUID personId){
+        Optional<PolicyDTO> policyDTO = medicineClient.getPolicyByIdDTO(personId);
+        log.debug("номер полиса: {}", personId);
         return policyDTO;
     }
 
