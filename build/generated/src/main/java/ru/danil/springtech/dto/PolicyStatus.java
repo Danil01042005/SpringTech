@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * Gets or Sets PolicyStatus
  */
 
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-07-01T15:48:20.452899200+03:00[Europe/Moscow]")
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-07-08T18:26:47.140048+03:00[Europe/Moscow]")
 public enum PolicyStatus {
   
   PENDING("PENDING"),
@@ -28,7 +28,7 @@ public enum PolicyStatus {
   
   FAILED("FAILED"),
   
-  COMPENSATING("COMPENSATING");
+  NOT_FOUND("NOT_FOUND");
 
   private String value;
 

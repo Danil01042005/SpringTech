@@ -36,6 +36,9 @@ class MedicineIntegrationServiceTest {
     @MockitoBean
     private MedicineClient medicineClient;
 
+    @MockitoBean
+    private RetryBudgetService retryBudgetService;
+
     @Test
     void createPolicyShouldCallMedicineAndReturnPolicyWithPersonId() {
         var saved = personService.createPerson(personWithoutPolicy("Anna Smirnova", 22, "445566"));
@@ -59,6 +62,7 @@ class MedicineIntegrationServiceTest {
         var personId = saved.getId();
         when(medicineClient.createPolicyDTO(any(PolicyDTO.class)))
                 .thenThrow(FeignTestExceptions.serverError("POST", "/policy/created"));
+        when(retryBudgetService.retry(any(Throwable.class))).thenReturn(true);
 
         assertThatThrownBy(() ->
                 medicineIntegrationService.createPolicyDTO(personId, policy("444444", null))
@@ -73,7 +77,6 @@ class MedicineIntegrationServiceTest {
         var personId = saved.getId();
         when(medicineClient.createPolicyDTO(any(PolicyDTO.class)))
                 .thenThrow(FeignTestExceptions.forbidden("POST", "/policy/created"));
-
         assertThatThrownBy(() ->
                 medicineIntegrationService.createPolicyDTO(personId, policy("555555", null))
         ).isInstanceOf(feign.FeignException.Forbidden.class);
@@ -86,6 +89,7 @@ class MedicineIntegrationServiceTest {
         var personId = personService.createPerson(personWithoutPolicy("Kirill Morozov", 30, "778899")).getId();
         when(medicineClient.getPolicyByIdDTO(personId))
                 .thenThrow(FeignTestExceptions.serverError("GET", "/policy/" + personId));
+        when(retryBudgetService.retry(any(Throwable.class))).thenReturn(true);
 
         assertThatThrownBy(() ->
                 medicineIntegrationService.getPolicyById(personId)

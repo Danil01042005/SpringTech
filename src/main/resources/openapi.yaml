@@ -395,6 +395,8 @@ components:
           type: integer
           minimum: 16
           example: 16
+        medicineErrorResponse:
+          $ref: '#/components/schemas/ErrorResponse'
         passport:
           $ref: '#/components/schemas/PassportDTO'
         policy:
@@ -453,7 +455,7 @@ components:
 
     PolicyStatus:
       type: string
-      enum: [PENDING, COMPLETED, FAILED, COMPENSATING]
+      enum: [PENDING, COMPLETED, FAILED, NOT_FOUND]
 
     ErrorResponse:
       type: object

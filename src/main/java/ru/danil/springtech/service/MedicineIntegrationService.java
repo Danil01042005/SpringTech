@@ -23,8 +23,8 @@ public class MedicineIntegrationService {
     }
 
     @MedicineRetry
-    public Optional<PolicyDTO> getPolicyById(UUID personId){
-        Optional<PolicyDTO> policyDTO = medicineClient.getPolicyByIdDTO(personId);
+    public PolicyDTO getPolicyById(UUID personId){
+        PolicyDTO policyDTO = medicineClient.getPolicyByIdDTO(personId);
         log.debug("номер полиса: {}", personId);
         return policyDTO;
     }

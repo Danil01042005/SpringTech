@@ -13,7 +13,7 @@ import java.util.UUID;
 public interface MedicineClient {
 
     @GetMapping("/{id}")
-    Optional<PolicyDTO> getPolicyByIdDTO(@PathVariable("id") UUID id);
+    PolicyDTO getPolicyByIdDTO(@PathVariable("id") UUID id);
 
     @PostMapping("/created")
     PolicyDTO createPolicyDTO(@RequestBody PolicyDTO policyDTO);

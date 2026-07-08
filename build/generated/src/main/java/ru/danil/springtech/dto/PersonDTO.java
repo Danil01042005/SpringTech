@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.UUID;
+import ru.danil.springtech.dto.ErrorResponse;
 import ru.danil.springtech.dto.PassportDTO;
 import ru.danil.springtech.dto.PolicyDTO;
 import ru.danil.springtech.dto.PolicyStatus;
@@ -22,7 +23,7 @@ import jakarta.annotation.Generated;
  * PersonDTO
  */
 
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-07-01T15:48:20.452899200+03:00[Europe/Moscow]")
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-07-08T18:26:47.140048+03:00[Europe/Moscow]")
 public class PersonDTO {
 
   private UUID id;
@@ -30,6 +31,8 @@ public class PersonDTO {
   private String fullName;
 
   private Integer age;
+
+  private ErrorResponse medicineErrorResponse;
 
   private PassportDTO passport;
 
@@ -111,6 +114,26 @@ public class PersonDTO {
     this.age = age;
   }
 
+  public PersonDTO medicineErrorResponse(ErrorResponse medicineErrorResponse) {
+    this.medicineErrorResponse = medicineErrorResponse;
+    return this;
+  }
+
+  /**
+   * Get medicineErrorResponse
+   * @return medicineErrorResponse
+  */
+  @Valid 
+  @Schema(name = "medicineErrorResponse", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  @JsonProperty("medicineErrorResponse")
+  public ErrorResponse getMedicineErrorResponse() {
+    return medicineErrorResponse;
+  }
+
+  public void setMedicineErrorResponse(ErrorResponse medicineErrorResponse) {
+    this.medicineErrorResponse = medicineErrorResponse;
+  }
+
   public PersonDTO passport(PassportDTO passport) {
     this.passport = passport;
     return this;
@@ -183,6 +206,7 @@ public class PersonDTO {
     return Objects.equals(this.id, personDTO.id) &&
         Objects.equals(this.fullName, personDTO.fullName) &&
         Objects.equals(this.age, personDTO.age) &&
+        Objects.equals(this.medicineErrorResponse, personDTO.medicineErrorResponse) &&
         Objects.equals(this.passport, personDTO.passport) &&
         Objects.equals(this.policy, personDTO.policy) &&
         Objects.equals(this.policyStatus, personDTO.policyStatus);
@@ -190,7 +214,7 @@ public class PersonDTO {
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, fullName, age, passport, policy, policyStatus);
+    return Objects.hash(id, fullName, age, medicineErrorResponse, passport, policy, policyStatus);
   }
 
   @Override
@@ -200,6 +224,7 @@ public class PersonDTO {
     sb.append("    id: ").append(toIndentedString(id)).append("\n");
     sb.append("    fullName: ").append(toIndentedString(fullName)).append("\n");
     sb.append("    age: ").append(toIndentedString(age)).append("\n");
+    sb.append("    medicineErrorResponse: ").append(toIndentedString(medicineErrorResponse)).append("\n");
     sb.append("    passport: ").append(toIndentedString(passport)).append("\n");
     sb.append("    policy: ").append(toIndentedString(policy)).append("\n");
     sb.append("    policyStatus: ").append(toIndentedString(policyStatus)).append("\n");

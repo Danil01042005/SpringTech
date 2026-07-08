@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jobrunr.jobs.annotations.Job;
 import org.jobrunr.scheduling.JobScheduler;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import ru.danil.springtech.dto.PolicyStatus;
 import ru.danil.springtech.exception.PolicyCreationException;
@@ -21,16 +22,19 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@ConfigurationProperties("policy-background-jobs-config")
 public class PolicyBackgroundJob {
     private final RetryBudgetService retryBudgetService;
     private final MedicineIntegrationService medicineIntegrationService;
     private final JobScheduler jobScheduler;
     private final PersonService personService;
+    private final PersonBackgroundJob personBackgroundJob;
+    private int amountToAddMinutes;
 
     public void scheduleCreatePolicyWithBudget(PersonDTO personDTO, PolicyDTO policyDTO) {
         policyDTO.setPersonId(personDTO.getId());
         jobScheduler.schedule(
-                Instant.now().plus(30, ChronoUnit.MINUTES),
+                Instant.now().plus(amountToAddMinutes, ChronoUnit.MINUTES),
                 () -> createPolicyWithBudget(personDTO, policyDTO)
         );
     }
@@ -41,6 +45,7 @@ public class PolicyBackgroundJob {
         try {
             executePolicyCreation(personDTO, policyDTO);
         } catch (Exception e) {
+            personBackgroundJob.compensateDeleteLocalPerson(personDTO);
             handleFailure(e, personId);
         }
     }

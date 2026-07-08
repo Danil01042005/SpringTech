@@ -39,11 +39,15 @@ class RetryBudgetServiceTest {
         service.setTtlSeconds(TTL);
         service.setCommandRetryableStatuses(List.of(429, 500, 502, 503, 504));
         service.setCommandNotRetryableStatuses(List.of(400, 401, 403, 404));
+    }
+
+    private void givenValueOperations() {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
     }
 
     @Test
     void successRequestShouldIncrementAndSetTtlWhenBelowMaxCapacity() {
+        givenValueOperations();
         when(valueOperations.increment(KEY, 2L)).thenReturn(8L);
         service.successRequest();
         verify(valueOperations).increment(KEY, 2L);
@@ -53,6 +57,7 @@ class RetryBudgetServiceTest {
 
     @Test
     void successRequestShouldCapAtMaxCapacity() {
+        givenValueOperations();
         when(valueOperations.increment(KEY, 2L)).thenReturn(11L);
         service.successRequest();
         verify(valueOperations).increment(KEY, 2L);
@@ -62,15 +67,17 @@ class RetryBudgetServiceTest {
 
     @Test
     void successRequestShouldHandleNullIncrement() {
+        givenValueOperations();
         when(valueOperations.increment(KEY, 2L)).thenReturn(null);
         service.successRequest();
         verify(valueOperations).increment(KEY, 2L);
-        verify(redisTemplate, never()).expire(eq(KEY), any());
+        verify(redisTemplate).expire(KEY, Duration.ofSeconds(TTL));
         verify(valueOperations, never()).set(anyString(), anyString(), any(Duration.class));
     }
 
     @Test
     void retryBudgetShouldReturnTrueWhenEnoughBudget() {
+        givenValueOperations();
         when(valueOperations.get(KEY)).thenReturn("5");
         when(valueOperations.decrement(KEY, 3L)).thenReturn(2L);
         boolean result = service.retryBudget();
@@ -82,10 +89,9 @@ class RetryBudgetServiceTest {
 
     @Test
     void retryBudgetShouldReturnFalseWhenNotEnoughBudget() {
+        givenValueOperations();
         when(valueOperations.get(KEY)).thenReturn("2");
-
         boolean result = service.retryBudget();
-
         assertThat(result).isFalse();
         verify(valueOperations).get(KEY);
         verify(valueOperations, never()).decrement(anyString(), anyLong());
@@ -93,6 +99,7 @@ class RetryBudgetServiceTest {
 
     @Test
     void retryBudgetShouldReturnFalseWhenKeyMissing() {
+        givenValueOperations();
         when(valueOperations.get(KEY)).thenReturn(null);
         boolean result = service.retryBudget();
         assertThat(result).isFalse();
@@ -101,6 +108,7 @@ class RetryBudgetServiceTest {
 
     @Test
     void retryBudgetShouldReturnFalseWhenDecrementReturnsNull() {
+        givenValueOperations();
         when(valueOperations.get(KEY)).thenReturn("5");
         when(valueOperations.decrement(KEY, 3L)).thenReturn(null);
         boolean result = service.retryBudget();
@@ -110,6 +118,7 @@ class RetryBudgetServiceTest {
 
     @Test
     void retryBudgetShouldReturnFalseWhenDecrementGoesBelowZero() {
+        givenValueOperations();
         when(valueOperations.get(KEY)).thenReturn("5");
         when(valueOperations.decrement(KEY, 3L)).thenReturn(-1L);
         boolean result = service.retryBudget();
@@ -122,16 +131,16 @@ class RetryBudgetServiceTest {
         FeignException ex = mock(FeignException.class);
         when(ex.status()).thenReturn(400);
         assertThat(service.retry(ex)).isFalse();
-        verify(valueOperations, never()).get(anyString());
+        verify(redisTemplate, never()).opsForValue();
     }
 
     @Test
     void retryShouldDelegateToRetryBudgetWhenRetryable() {
+        givenValueOperations();
         FeignException ex = mock(FeignException.class);
         when(ex.status()).thenReturn(503);
         when(valueOperations.get(KEY)).thenReturn("5");
         when(valueOperations.decrement(KEY, 3L)).thenReturn(2L);
-
         assertThat(service.retry(ex)).isTrue();
     }
 

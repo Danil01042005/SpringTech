@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.danil.springtech.dto.PersonDTO;
@@ -43,7 +44,11 @@ public class PersonService {
     @Transactional
     @CacheEvict(value = PERSON_CACHE, key = "#id")
     public void deletePersonById(UUID id) {
-        personRepository.deleteById(id);
+        try {
+            personRepository.deleteById(id);
+        } catch (EmptyResultDataAccessException e) {
+            log.warn("Удаление человека {} уже было совершено", id);
+        }
     }
 
     @Transactional

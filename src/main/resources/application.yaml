@@ -63,6 +63,12 @@ retry-config:
   success-request: 1
   retry-cost: 10
 
+policy-background-jobs-config:
+  amountToAddMinutes: 30
+
+person-background-jobs-config:
+  amountToAddMinutes: 30
+
 jobrunr:
   job-scheduler:
     enabled: true
