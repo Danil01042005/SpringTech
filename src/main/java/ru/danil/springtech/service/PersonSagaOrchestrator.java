@@ -8,10 +8,8 @@ import ru.danil.springtech.dto.ErrorResponse;
 import ru.danil.springtech.dto.PersonDTO;
 import ru.danil.springtech.dto.PolicyDTO;
 import ru.danil.springtech.dto.PolicyStatus;
-import ru.danil.springtech.exception.ServiceUnavailableException;
 import ru.danil.springtech.util.job.PolicyBackgroundJob;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -45,10 +43,6 @@ public class PersonSagaOrchestrator {
         };
     }
 
-    public PersonDTO getLocalPersonById(UUID personId) {
-        return personService.getLocalPerson(personId);
-    }
-
     private PersonDTO handleGetPolicyQueryFailure(Exception e, PersonDTO personDTO) {
         UUID personId = personDTO.getId();
         switch (e) {
@@ -75,7 +69,7 @@ public class PersonSagaOrchestrator {
     }
 
     public PersonDTO getPerson(UUID personId){
-        PersonDTO personDTO = getLocalPersonById(personId);
+        PersonDTO personDTO = personService.getLocalPerson(personId);
         try {
             PolicyDTO policyDTO = medicineIntegrationService.getPolicyById(personId);
             personDTO.setPolicy(policyDTO);
