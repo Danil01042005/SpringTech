@@ -383,6 +383,9 @@ components:
         - age
         - passport
       properties:
+        id:
+          type: string
+          format: uuid
         fullName:
           type: string
           minLength: 4
@@ -392,8 +395,14 @@ components:
           type: integer
           minimum: 16
           example: 16
+        medicineErrorResponse:
+          $ref: '#/components/schemas/ErrorResponse'
         passport:
           $ref: '#/components/schemas/PassportDTO'
+        policy:
+          $ref: '#/components/schemas/PolicyDTO'
+        policyStatus:
+          $ref: '#/components/schemas/PolicyStatus'
     PassportDTO:
       required:
         - passportNumber
@@ -403,6 +412,18 @@ components:
           minLength: 6
           maxLength: 6
           example: 123456
+    PolicyDTO:
+      required:
+        - policyNumber
+      properties:
+        policyNumber:
+          type: string
+          minLength: 6
+          maxLength: 6
+          example: "123456"
+        personId:
+          type: string
+          format: uuid
 
     ActorDTO:
       required:
@@ -432,10 +453,12 @@ components:
           minLength: 4
           example: Gorko 2
 
+    PolicyStatus:
+      type: string
+      enum: [PENDING, COMPLETED, FAILED, NOT_FOUND]
+
     ErrorResponse:
       type: object
       properties:
         message:
           type: string
-        code:
-          type: integer

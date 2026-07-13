@@ -1,0 +1,1 @@
+ALTER TABLE persons ADD COLUMN IF NOT EXISTS policy_status varchar(10);

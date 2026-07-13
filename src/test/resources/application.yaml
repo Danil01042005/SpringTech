@@ -37,11 +37,11 @@ feign:
   client:
     config:
       medicine-client:
-        connectTimeout: 3s
-        readTimeout: 3s
+        connectTimeout: 1s
+        readTimeout: 1s
 
 api:
-    medicine-url: http://medicine:8081/policy
+  medicine-url: http://medicine:8081/policy
 
 retry-config:
   command-retryable-statuses:
@@ -55,6 +55,16 @@ retry-config:
     - 401
     - 403
     - 404
+  query-retryable-statuses:
+    - 429
+    - 503
+    - 504
+  query-not-retryable-statuses:
+    - 400
+    - 401
+    - 403
+    - 404
+    - 500
   token-budget-key-name: "tokenBudget"
   max-attempts: 2
   delay: 100
@@ -63,22 +73,11 @@ retry-config:
   success-request: 1
   retry-cost: 10
 
-policy-background-jobs-config:
-  amountToAddMinutes: 30
-
-person-background-jobs-config:
-  amountToAddMinutes: 30
-
 jobrunr:
-  job-scheduler:
-    enabled: true
   background-job-server:
-    enabled: true
+    enabled: false
   dashboard:
-    enabled: true
-    port: 8000
-  jobs:
-    default-number-of-retries: 0
+    enabled: false
 
 scheduler-config:
   delay: 300000
