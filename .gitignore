@@ -99,6 +99,7 @@ SpringTech/.idea
 bin
 /build/*
 !/build/generated/
+!/build/generated-kafka/
 target
 dependency-reduced-pom.xml
 *.sublime-*

@@ -1,0 +1,30 @@
+openapi: 3.0.3
+info:
+  title: Kafka Messages
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    RetryableTaskDTO:
+      type: object
+      required: [type, payload]
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/RetryableTaskType'
+        payload:
+          type: string
+          description: JSON-строка с PolicyDTO
+        retryTime:
+          type: string
+          format: date-time
+
+    RetryableTaskType:
+      type: string
+      enum: [CREATED_MEDICINE_POLICY]
+
+    RetryableTaskStatus:
+      type: string
+      enum: [ IN_PROGRESS, SEND_TO_KAFKA, PENDING, SUCCESS, DELETE_PERSON_COMPENSATED]

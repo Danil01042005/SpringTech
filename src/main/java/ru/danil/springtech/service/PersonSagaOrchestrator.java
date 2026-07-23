@@ -4,10 +4,15 @@ import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.danil.springtech.dto.ErrorResponse;
 import ru.danil.springtech.dto.PersonDTO;
 import ru.danil.springtech.dto.PolicyDTO;
 import ru.danil.springtech.dto.PolicyStatus;
+import ru.danil.springtech.kafka.dto.RetryableTaskDTO;
+import ru.danil.springtech.kafka.dto.RetryableTaskType;
+import ru.danil.springtech.model.PersonWithOutbox;
+import ru.danil.springtech.util.job.PersonBackgroundJob;
 import ru.danil.springtech.util.job.PolicyBackgroundJob;
 
 import java.util.UUID;
@@ -20,16 +25,20 @@ public class PersonSagaOrchestrator {
     private final MedicineIntegrationService medicineIntegrationService;
     private final PolicyBackgroundJob policyBackgroundJob;
     private final PersonPolicyService personPolicyService;
+    private final RetryableTaskService retryableTaskService;
+    private final PersonBackgroundJob personBackgroundJob;
 
 
     private PersonDTO createPersonWithPolicy(PersonDTO newPersonDTO) {
-        PersonDTO personDTO = personService.createPerson(newPersonDTO);
+        PersonWithOutbox personWithOutbox = createPersonAndRetryableTaskLocal(newPersonDTO);
+        PersonDTO personDTO = personWithOutbox.personDTO();
+        RetryableTaskDTO retryableTaskDTO = personWithOutbox.retryableTaskDTO();
         try {
             PolicyDTO policyDTO = medicineIntegrationService.createPolicyDTO(personDTO.getId(), newPersonDTO.getPolicy());
             log.debug("Полис успешно создан: {}", policyDTO.toString());
             return personPolicyService.attachPolicy(personDTO, policyDTO, PolicyStatus.COMPLETED);
         } catch (FeignException e) {
-            policyBackgroundJob.scheduleCreatePolicyWithBudget(personDTO, newPersonDTO.getPolicy());
+            policyBackgroundJob.scheduleCreatePolicyWithBudget(personDTO, newPersonDTO.getPolicy(), retryableTaskDTO.getId());
             personDTO.setPolicyStatus(PolicyStatus.PENDING);
             personService.updatePolicyStatus(personDTO.getId(), PolicyStatus.PENDING);
             return personDTO;
@@ -77,5 +86,22 @@ public class PersonSagaOrchestrator {
         } catch (Exception e) {
             return handleGetPolicyQueryFailure(e, personDTO);
         }
+    }
+
+    public void compensateDeleteLocalPerson(UUID personId) {
+        try {
+            personService.deletePersonById(personId);
+            log.debug("Успешно удален человек: {}", personId);
+        } catch (Exception e) {
+            log.warn("Компенсация не удалась для человека {}, создаем джобу: {}", personId, e.getMessage());
+            personBackgroundJob.compensateDeleteLocalPersonHandleFailure(personId);
+        }
+    }
+
+    @Transactional
+    private PersonWithOutbox createPersonAndRetryableTaskLocal(PersonDTO newPersonDTO) {
+        PersonDTO personDTO = personService.createPerson(newPersonDTO);
+        RetryableTaskDTO retryableTaskDTO = retryableTaskService.createRetryableTask(personDTO.getPolicy(), RetryableTaskType.CREATED_MEDICINE_POLICY);
+        return new PersonWithOutbox(retryableTaskDTO, personDTO);
     }
 }

@@ -1,6 +1,8 @@
 spring:
   application:
     name: SpringTest
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
 
   cache:
     type: redis
@@ -19,6 +21,29 @@ spring:
   flyway:
     default-schema: test
     create-schemas: true
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+        delivery.timeout.ms: 15000
+    consumer:
+      max-poll-records: 100
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "ru.danil.springtech.kafka.dto"
+        spring.json.value.default.type: "ru.danil.springtech.kafka.dto.RetryableTaskDTO"
+      enable-auto-commit: false
+      group-id: springtech-service-group
+    listener:
+      auto-startup: false
+
 
   data:
     redis:
@@ -79,5 +104,11 @@ jobrunr:
   dashboard:
     enabled: false
 
-scheduler-config:
-  delay: 300000
+kafka-topic:
+  min-insync-replicas: "1"
+  partitions: 3
+  replicas: 1
+
+retryable-task:
+  limit: 100
+  timeoutInSecond: 36000

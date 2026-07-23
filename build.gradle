@@ -32,6 +32,7 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:5.0.1'
     implementation 'org.springframework.retry:spring-retry:2.0.12'
     implementation 'org.jobrunr:jobrunr-spring-boot-4-starter:8.6.1'
+    implementation 'org.springframework.boot:spring-boot-starter-kafka:4.1.0'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'org.postgresql:postgresql'
     annotationProcessor 'org.projectlombok:lombok'
@@ -51,10 +52,8 @@ openApiGenerate {
     generatorName = "spring"
     inputSpec = file("${projectDir}/src/main/resources/openapi.yaml").absolutePath.replace('\\', '/')
     outputDir = layout.buildDirectory.dir("generated").get().asFile.path
-
     apiPackage = "ru.danil.springtech.api"
     modelPackage = "ru.danil.springtech.dto"
-
     configOptions = [
             requestMappingMode: "api_interface",
             skipDefaultInterface: "true",
@@ -67,22 +66,37 @@ openApiGenerate {
     ]
 }
 
+tasks.register('generateKafkaDto', org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+    generatorName = "spring"
+    inputSpec = file("${projectDir}/src/main/resources/kafka.yaml").absolutePath.replace('\\', '/')
+    outputDir = layout.buildDirectory.dir("generated-kafka").get().asFile.path
+    apiPackage = "ru.danil.springtech.kafka.api"
+    modelPackage = "ru.danil.springtech.kafka.dto"
+    configOptions = [
+            skipDefaultInterface: "true",
+            interfaceOnly: "true",
+            useSpringBoot3: "true",
+            openApiNullable: "false",
+            generateSupportingFiles: "false"
+    ]
+}
+
 tasks.named("compileJava") {
-    dependsOn("openApiGenerate")
+    dependsOn("openApiGenerate", "generateKafkaDto")
 }
 
 tasks.named('test') {
     useJUnitPlatform()
 }
+
 sourceSets {
     main {
         java {
             srcDirs += layout.buildDirectory.dir("generated/src/main/java").get().asFile.path
+            srcDirs += layout.buildDirectory.dir("generated-kafka/src/main/java").get().asFile.path
         }
         resources {
             srcDirs = ["src/main/resources"]
         }
     }
 }
-
-compileJava.dependsOn tasks.openApiGenerate

@@ -20,6 +20,30 @@ spring:
     default-schema: test
     create-schemas: true
 
+  kafka:
+    bootstrap-servers: kafka:9092
+    producer:
+      key-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+        delivery.timeout.ms: 15000
+    consumer:
+      max-poll-records: 100
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "ru.danil.springtech.kafka.dto"
+        spring.json.value.default.type: "ru.danil.springtech.kafka.dto.RetryableTaskDTO"
+      enable-auto-commit: false
+      group-id: springtech-service-group
+    listener:
+      type: batch
+      ack-mode: manual
+
+
   data:
     redis:
       host: redis
@@ -80,5 +104,11 @@ jobrunr:
   jobs:
     default-number-of-retries: 0
 
-scheduler-config:
-  delay: 300000
+kafka-topic:
+  minInsyncReplicas: "1"
+  partitions: 3
+  replicas: 1
+
+retryable-task:
+  limit: 100
+  timeout-in-second: 36000
