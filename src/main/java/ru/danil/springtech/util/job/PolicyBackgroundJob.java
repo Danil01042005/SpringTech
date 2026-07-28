@@ -34,11 +34,11 @@ public class PolicyBackgroundJob {
     private final RetryableTaskService retryableTaskService;
     private int amountToAddMinutes;
 
-    public void scheduleCreatePolicyWithBudget(PersonDTO personDTO, PolicyDTO policyDTO, UUID retryableTaskId) {
+    public void scheduleCreatePolicyWithBudget(PersonDTO personDTO, PolicyDTO policyDTO) {
         policyDTO.setPersonId(personDTO.getId());
         jobScheduler.schedule(
                 Instant.now().plus(amountToAddMinutes, ChronoUnit.MINUTES),
-                () -> createPolicyWithBudget(personDTO, policyDTO, retryableTaskId)
+                () -> createPolicyWithBudget(personDTO, policyDTO, personDTO.getId())
         );
     }
 

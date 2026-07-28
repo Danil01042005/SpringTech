@@ -105,10 +105,17 @@ jobrunr:
     default-number-of-retries: 0
 
 kafka-topic:
+  policy-created-topic-name: "policy-created-topic"
   minInsyncReplicas: "1"
   partitions: 3
   replicas: 1
 
-retryable-task:
+retryable-task-service:
   limit: 100
   timeout-in-second: 36000
+
+kafka-listener:
+  topic-name-in-policy-created-dlq-handler: "policy-created-dlq"
+
+retryable-task-scheduler:
+  fixed-rate: 5000

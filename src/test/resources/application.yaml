@@ -62,8 +62,8 @@ feign:
   client:
     config:
       medicine-client:
-        connectTimeout: 1s
-        readTimeout: 1s
+        connectTimeout: 3s
+        readTimeout: 3s
 
 api:
   medicine-url: http://medicine:8081/policy
@@ -105,10 +105,17 @@ jobrunr:
     enabled: false
 
 kafka-topic:
-  min-insync-replicas: "1"
+  policy-created-topic-name: "policy-created-topic"
+  minInsyncReplicas: "1"
   partitions: 3
   replicas: 1
 
-retryable-task:
+retryable-task-service:
   limit: 100
-  timeoutInSecond: 36000
+  timeout-in-second: 36000
+
+kafka-listener:
+  topic-name-in-policy-created-dlq-handler: "policy-created-dlq"
+
+retryable-task-scheduler:
+  fixed-rate: 5000

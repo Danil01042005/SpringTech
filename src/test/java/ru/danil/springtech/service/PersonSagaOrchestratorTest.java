@@ -6,7 +6,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
@@ -15,11 +14,11 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.danil.springtech.TestcontainersConfiguration;
 import ru.danil.springtech.client.MedicineClient;
 import ru.danil.springtech.dto.PolicyDTO;
+import ru.danil.springtech.dto.PolicyStatus;
 import ru.danil.springtech.repository.PersonRepository;
 import ru.danil.springtech.support.FeignTestExceptions;
 
 import java.time.Instant;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,10 +36,7 @@ import static ru.danil.springtech.support.PersonTestFixtures.personWithPolicy;
 class PersonSagaOrchestratorTest {
 
     @Autowired
-    private PersonService personService;
-
-    @Autowired
-    private PersonSagaOrchestrator personSagaOrchestrator;
+    private PersonCoordinator personCoordinator;
 
     @Autowired
     private PersonRepository personRepository;
@@ -56,7 +52,7 @@ class PersonSagaOrchestratorTest {
 
     @BeforeEach
     void setUp() {
-        Cache cache = cacheManager.getCache("PERSON_CACHE");
+        var cache = cacheManager.getCache("PERSON_CACHE");
         if (cache != null) {
             cache.clear();
         }
@@ -71,12 +67,13 @@ class PersonSagaOrchestratorTest {
             return policy(request.getPolicyNumber(), request.getPersonId());
         });
 
-        var created = personSagaOrchestrator.create(input);
+        var created = personCoordinator.create(input);
 
         assertThat(created.getId()).isNotNull();
         assertThat(created.getPolicy()).isNotNull();
         assertThat(created.getPolicy().getPolicyNumber()).isEqualTo("444444");
         assertThat(created.getPolicy().getPersonId()).isEqualTo(created.getId());
+        assertThat(created.getPolicyStatus()).isEqualTo(PolicyStatus.COMPLETED);
         verify(medicineClient).createPolicyDTO(any(PolicyDTO.class));
         verify(jobScheduler, never()).schedule(any(Instant.class), any(JobLambda.class));
     }
@@ -87,10 +84,11 @@ class PersonSagaOrchestratorTest {
         when(medicineClient.createPolicyDTO(any(PolicyDTO.class)))
                 .thenThrow(FeignTestExceptions.serverError("POST", "/policy/created"));
 
-        var created = personSagaOrchestrator.create(input);
+        var created = personCoordinator.create(input);
 
         assertThat(created.getId()).isNotNull();
         assertThat(created.getPolicy()).isNull();
+        assertThat(created.getPolicyStatus()).isEqualTo(PolicyStatus.PENDING);
         assertThat(personRepository.findById(created.getId())).isPresent();
         verify(jobScheduler).schedule(any(Instant.class), any(JobLambda.class));
     }
@@ -101,10 +99,11 @@ class PersonSagaOrchestratorTest {
         when(medicineClient.createPolicyDTO(any(PolicyDTO.class)))
                 .thenThrow(FeignTestExceptions.forbidden("POST", "/policy/created"));
 
-        var created = personSagaOrchestrator.create(input);
+        var created = personCoordinator.create(input);
 
         assertThat(created.getId()).isNotNull();
         assertThat(created.getPolicy()).isNull();
+        assertThat(created.getPolicyStatus()).isEqualTo(PolicyStatus.PENDING);
         assertThat(personRepository.findById(created.getId())).isPresent();
         verify(jobScheduler).schedule(any(Instant.class), any(JobLambda.class));
     }
@@ -115,10 +114,11 @@ class PersonSagaOrchestratorTest {
         when(medicineClient.createPolicyDTO(any(PolicyDTO.class)))
                 .thenThrow(FeignTestExceptions.timeout("POST", "/policy/created"));
 
-        var created = personSagaOrchestrator.create(input);
+        var created = personCoordinator.create(input);
 
         assertThat(created.getId()).isNotNull();
         assertThat(created.getPolicy()).isNull();
+        assertThat(created.getPolicyStatus()).isEqualTo(PolicyStatus.PENDING);
         assertThat(personRepository.findById(created.getId())).isPresent();
         verify(jobScheduler).schedule(any(Instant.class), any(JobLambda.class));
     }
@@ -127,10 +127,11 @@ class PersonSagaOrchestratorTest {
     void createPersonWithoutPolicyDoesNotCallMedicine() {
         var input = personWithoutPolicy("Oleg Kozlov", 40, "778899");
 
-        var created = personSagaOrchestrator.create(input);
+        var created = personCoordinator.create(input);
 
         assertThat(created.getId()).isNotNull();
         assertThat(created.getPolicy()).isNull();
+        assertThat(created.getPolicyStatus()).isNull();
         verify(medicineClient, never()).createPolicyDTO(any());
         verify(jobScheduler, never()).schedule(any(Instant.class), any(JobLambda.class));
     }

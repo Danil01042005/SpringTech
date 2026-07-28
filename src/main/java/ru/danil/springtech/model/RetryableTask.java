@@ -20,7 +20,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "retryable_task")
-@SQLDelete(sql = "UPDATE test.orders SET is_deleted = true WHERE id = ?")
+@SQLDelete(sql = "UPDATE test.retryable_task SET is_deleted = true WHERE id = ?")
 @SQLRestriction("is_deleted = false")
 @ToString
 public class RetryableTask {

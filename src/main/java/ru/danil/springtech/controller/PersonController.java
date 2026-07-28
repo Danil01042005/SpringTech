@@ -8,6 +8,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 import ru.danil.springtech.api.PersonAndPassportApi;
 import ru.danil.springtech.dto.PersonDTO;
+import ru.danil.springtech.service.PersonCoordinator;
 import ru.danil.springtech.service.PersonSagaOrchestrator;
 import ru.danil.springtech.service.PersonService;
 
@@ -19,11 +20,12 @@ import java.util.UUID;
 public class PersonController implements PersonAndPassportApi {
     private final PersonService personService;
     private final PersonSagaOrchestrator personSagaOrchestrator;
+    private final PersonCoordinator personCoordinator;
 
     @Override
     public ResponseEntity<PersonDTO> createPerson(@Valid PersonDTO personDTO) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                             .body(personSagaOrchestrator.create(personDTO));
+                             .body(personCoordinator.create(personDTO));
     }
 
     @Override

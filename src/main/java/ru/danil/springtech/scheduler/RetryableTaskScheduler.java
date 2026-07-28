@@ -24,7 +24,7 @@ public class RetryableTaskScheduler {
         this.processorByType = processors.stream().collect(Collectors.toMap(RetryableTaskProcessor::getSupportedType, p -> p));
     }
 
-    @Scheduled(fixedRate = 5000)
+    @Scheduled(fixedRateString = "${retryable-task-scheduler.fixed-rate}")
     public void executeRetryableTasks() {
         for (var entry : processorByType.entrySet()) {
             var taskType = entry.getKey();

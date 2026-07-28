@@ -23,7 +23,7 @@ import java.util.UUID;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@ConfigurationProperties(prefix = "retryable-task")
+@ConfigurationProperties(prefix = "retryable-task-service")
 public class RetryableTaskService {
     private final RetryableTaskRepository retryableTaskRepository;
     private final RetryableTaskMapper retryableTaskMapper;
@@ -41,7 +41,7 @@ public class RetryableTaskService {
     public List<RetryableTaskDTO> getRetryableTasks(RetryableTaskType type) {
         Instant currentTime = Instant.now();
         Pageable pageable = PageRequest.of(0, limit);
-        List<RetryableTask> retryableTasks = retryableTaskRepository.findRetryableTasks(type, Instant.now(), RetryableTaskStatus.PENDING , pageable);
+        List<RetryableTask> retryableTasks = retryableTaskRepository.findRetryableTasks(type, currentTime, RetryableTaskStatus.PENDING , pageable);
 
         for (RetryableTask retryableTask : retryableTasks) {
             retryableTask.setRetryTime(currentTime.plus(Duration.ofSeconds(timeoutInSecond)));
