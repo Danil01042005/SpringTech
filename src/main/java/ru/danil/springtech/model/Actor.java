@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+import ru.danil.springtech.dto.PolicyStatus;
+import ru.danil.springtech.util.converter.PolicyStatusConverter;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,6 +41,10 @@ public class Actor {
 
     @Column(name = "is_deleted")
     private Boolean isDeleted = false;
+
+    @Convert(converter = PolicyStatusConverter.class)
+    @Column(name = "policy_status")
+    private PolicyStatus policyStatus;
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(

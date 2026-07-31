@@ -7,4 +7,5 @@ CREATE TABLE IF NOT EXISTS retryable_task(
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     is_deleted BOOLEAN DEFAULT FALSE
-)
+);
+ALTER TABLE actors ADD COLUMN IF NOT EXISTS policy_status varchar(10);

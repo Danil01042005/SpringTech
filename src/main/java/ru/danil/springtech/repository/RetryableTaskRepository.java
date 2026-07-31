@@ -1,10 +1,12 @@
 package ru.danil.springtech.repository;
 
 import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import ru.danil.springtech.kafka.dto.RetryableTaskStatus;
@@ -26,6 +28,7 @@ public interface RetryableTaskRepository extends CrudRepository<RetryableTask, U
              AND r.status = :status
            ORDER BY r.retryTime ASC
            """)
+    @QueryHints(@QueryHint(name = "javax.persistence.lock.timeout", value = "-2"))
     List<RetryableTask> findRetryableTasks(RetryableTaskType type,
                                            Instant retryTime,
                                            RetryableTaskStatus status,

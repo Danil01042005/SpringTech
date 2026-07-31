@@ -18,12 +18,14 @@ import jakarta.annotation.Generated;
  * PolicyDTO
  */
 
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-07-23T11:56:13.814435400+03:00[Europe/Moscow]")
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-07-31T14:44:45.571404800+03:00[Europe/Moscow]")
 public class PolicyDTO {
 
   private String policyNumber;
 
   private UUID personId;
+
+  private UUID actorId;
 
   public PolicyDTO() {
     super();
@@ -76,6 +78,26 @@ public class PolicyDTO {
     this.personId = personId;
   }
 
+  public PolicyDTO actorId(UUID actorId) {
+    this.actorId = actorId;
+    return this;
+  }
+
+  /**
+   * Get actorId
+   * @return actorId
+  */
+  @Valid 
+  @Schema(name = "actorId", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  @JsonProperty("actorId")
+  public UUID getActorId() {
+    return actorId;
+  }
+
+  public void setActorId(UUID actorId) {
+    this.actorId = actorId;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -86,12 +108,13 @@ public class PolicyDTO {
     }
     PolicyDTO policyDTO = (PolicyDTO) o;
     return Objects.equals(this.policyNumber, policyDTO.policyNumber) &&
-        Objects.equals(this.personId, policyDTO.personId);
+        Objects.equals(this.personId, policyDTO.personId) &&
+        Objects.equals(this.actorId, policyDTO.actorId);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(policyNumber, personId);
+    return Objects.hash(policyNumber, personId, actorId);
   }
 
   @Override
@@ -100,6 +123,7 @@ public class PolicyDTO {
     sb.append("class PolicyDTO {\n");
     sb.append("    policyNumber: ").append(toIndentedString(policyNumber)).append("\n");
     sb.append("    personId: ").append(toIndentedString(personId)).append("\n");
+    sb.append("    actorId: ").append(toIndentedString(actorId)).append("\n");
     sb.append("}");
     return sb.toString();
   }

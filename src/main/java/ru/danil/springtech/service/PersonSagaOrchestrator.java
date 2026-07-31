@@ -8,7 +8,6 @@ import ru.danil.springtech.dto.ErrorResponse;
 import ru.danil.springtech.dto.PersonDTO;
 import ru.danil.springtech.dto.PolicyDTO;
 import ru.danil.springtech.dto.PolicyStatus;
-import ru.danil.springtech.util.job.PersonBackgroundJob;
 import ru.danil.springtech.util.job.PolicyBackgroundJob;
 
 import java.util.UUID;
@@ -21,20 +20,27 @@ public class PersonSagaOrchestrator {
     private final MedicineIntegrationService medicineIntegrationService;
     private final PolicyBackgroundJob policyBackgroundJob;
     private final PersonPolicyService personPolicyService;
-    private final PersonBackgroundJob personBackgroundJob;
 
 
-    public PersonDTO createPersonWithPolicy(PersonDTO request , PersonDTO localPersonDTO) {
+    private PersonDTO createPersonWithPolicy(PersonDTO newPersonDTO) {
+        PersonDTO personDTO = personService.createPerson(newPersonDTO);
         try {
-            PolicyDTO policyDTO = medicineIntegrationService.createPolicyDTO(localPersonDTO.getId(), request.getPolicy());
+            PolicyDTO policyDTO = medicineIntegrationService.createPolicyDTO(personDTO.getId(), newPersonDTO.getPolicy());
             log.debug("Полис успешно создан: {}", policyDTO.toString());
-            return personPolicyService.attachPolicy(localPersonDTO, policyDTO, PolicyStatus.COMPLETED);
+            return personPolicyService.attachPolicy(personDTO, policyDTO, PolicyStatus.COMPLETED);
         } catch (FeignException e) {
-            policyBackgroundJob.scheduleCreatePolicyWithBudget(localPersonDTO, request.getPolicy());
-            localPersonDTO.setPolicyStatus(PolicyStatus.PENDING);
-            personService.updatePolicyStatus(localPersonDTO.getId(), PolicyStatus.PENDING);
-            return localPersonDTO;
+            policyBackgroundJob.scheduleCreatePolicyWithBudget(personDTO, newPersonDTO.getPolicy());
+            personDTO.setPolicyStatus(PolicyStatus.PENDING);
+            personService.updatePolicyStatus(personDTO.getId(), PolicyStatus.PENDING);
+            return personDTO;
         }
+    }
+
+    public PersonDTO create(PersonDTO personDTO) {
+        return switch (personDTO){
+            case PersonDTO p when p.getPolicy() != null -> createPersonWithPolicy(personDTO);
+            default -> personService.createPerson(personDTO);
+        };
     }
 
     private PersonDTO handleGetPolicyQueryFailure(Exception e, PersonDTO personDTO) {
@@ -70,16 +76,6 @@ public class PersonSagaOrchestrator {
             return personService.attachPolicyToPerson(personDTO, policyDTO);
         } catch (Exception e) {
             return handleGetPolicyQueryFailure(e, personDTO);
-        }
-    }
-
-    public void compensateDeleteLocalPerson(UUID personId) {
-        try {
-            personService.deletePersonById(personId);
-            log.debug("Успешно удален человек: {}", personId);
-        } catch (Exception e) {
-            log.warn("Компенсация не удалась для человека {}, создаем джобу: {}", personId, e.getMessage());
-            personBackgroundJob.compensateDeleteLocalPersonHandleFailure(personId);
         }
     }
 }

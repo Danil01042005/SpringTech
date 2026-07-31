@@ -27,4 +27,4 @@ components:
 
     RetryableTaskStatus:
       type: string
-      enum: [ IN_PROGRESS, SEND_TO_KAFKA, PENDING, SUCCESS, DELETE_PERSON_COMPENSATED]
+      enum: [ SEND_TO_KAFKA, PENDING, SUCCESS, DELETE_ACTOR_COMPENSATED]

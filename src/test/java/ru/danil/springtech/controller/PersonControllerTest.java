@@ -18,7 +18,6 @@ import ru.danil.springtech.dto.PassportDTO;
 import ru.danil.springtech.dto.PersonDTO;
 import ru.danil.springtech.exception.ObjectNotFoundException;
 import ru.danil.springtech.exception.ServiceUnavailableException;
-import ru.danil.springtech.service.PersonCoordinator;
 import ru.danil.springtech.service.PersonSagaOrchestrator;
 import ru.danil.springtech.service.PersonService;
 
@@ -51,16 +50,13 @@ class PersonControllerTest {
     private PersonSagaOrchestrator personSagaOrchestrator;
 
     @MockitoBean
-    private PersonCoordinator personCoordinator;
-
-    @MockitoBean
     private StringRedisTemplate stringRedisTemplate;
 
     @Test
     void createPersonWithValidRequestBodyReturn201AndPerson() throws Exception {
         UUID personId = UUID.randomUUID();
         PersonDTO response = validResponsePerson(personId);
-        when(personCoordinator.create(any(PersonDTO.class))).thenReturn(response);
+        when(personSagaOrchestrator.create(any(PersonDTO.class))).thenReturn(response);
 
         mockMvc.perform(post("/person/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -72,7 +68,7 @@ class PersonControllerTest {
                 .andExpect(jsonPath("$.passport.passportNumber").value("123456"))
                 .andExpect(jsonPath("$.policy.policyNumber").value("654321"));
 
-        verify(personCoordinator).create(any(PersonDTO.class));
+        verify(personSagaOrchestrator).create(any(PersonDTO.class));
     }
 
     @Test
@@ -97,8 +93,8 @@ class PersonControllerTest {
     void createPersonWhenMedicineUnavailableReturns201WithoutPolicy() throws Exception {
         UUID personId = UUID.randomUUID();
         PersonDTO response = validResponsePerson(personId);
-        response.setPolicy(null); // координатор вернёт PENDING без полиса
-        when(personCoordinator.create(any(PersonDTO.class))).thenReturn(response);
+        response.setPolicy(null); // оркестратор вернёт PENDING без полиса
+        when(personSagaOrchestrator.create(any(PersonDTO.class))).thenReturn(response);
 
         mockMvc.perform(post("/person/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -108,7 +104,7 @@ class PersonControllerTest {
                 .andExpect(jsonPath("$.fullName").value("Иван Петров"))
                 .andExpect(jsonPath("$.policy").doesNotExist());
 
-        verify(personCoordinator).create(any(PersonDTO.class));
+        verify(personSagaOrchestrator).create(any(PersonDTO.class));
     }
 
     @Test

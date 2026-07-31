@@ -34,7 +34,11 @@ public class RetryableTaskScheduler {
                 log.info("Нет задач для выполнения для типа : {}", taskType);
                 continue;
             }
-            processor.processRetryableTasks(tasks);
+            try {
+                processor.processRetryableTasks(tasks);
+            } catch (Exception e) {
+                log.error("Ошибка при обработке задач типа {}: {}", taskType, e.getMessage(), e);
+            }
         }
     }
 }

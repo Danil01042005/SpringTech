@@ -424,12 +424,18 @@ components:
         personId:
           type: string
           format: uuid
+        actorId:
+          type: string
+          format: uuid
 
     ActorDTO:
       required:
         - name
         - age
       properties:
+        id:
+          type: string
+          format: uuid
         name:
           type: string
           minLength: 4
@@ -444,6 +450,10 @@ components:
             $ref: '#/components/schemas/MovieDTO'
           default:
               name: "Gorko 2"
+        policyStatus:
+          $ref: '#/components/schemas/PolicyStatus'
+        policy:
+          $ref: '#/components/schemas/PolicyDTO'
     MovieDTO:
       required:
         - name
@@ -455,7 +465,7 @@ components:
 
     PolicyStatus:
       type: string
-      enum: [PENDING, COMPLETED, FAILED, NOT_FOUND]
+      enum: [IN_PROGRESS, PENDING, COMPLETED, FAILED, NOT_FOUND]
 
     ErrorResponse:
       type: object
