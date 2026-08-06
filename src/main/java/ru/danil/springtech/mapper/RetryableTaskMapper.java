@@ -1,33 +1,22 @@
 package ru.danil.springtech.mapper;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.mapstruct.*;
 import ru.danil.springtech.dto.PolicyDTO;
 import ru.danil.springtech.kafka.dto.RetryableTaskDTO;
 import ru.danil.springtech.kafka.dto.RetryableTaskType;
 import ru.danil.springtech.model.RetryableTask;
+import ru.danil.springtech.util.converter.PolicyDTOJsonConverter;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
-        unmappedTargetPolicy = ReportingPolicy.IGNORE)
+        unmappedTargetPolicy = ReportingPolicy.IGNORE,
+        uses = PolicyDTOJsonConverter.class)
 public interface RetryableTaskMapper {
-    ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
     @Mapping(source = "policyDTO", target = "payload" , qualifiedByName = "convertObjectToJson")
     RetryableTask toRetryableTask(PolicyDTO policyDTO, RetryableTaskType type);
-
-    @Named("convertObjectToJson")
-    default String convertObjectToJson(PolicyDTO policyDTO){
-        try {
-            return OBJECT_MAPPER.writeValueAsString(policyDTO);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Ошибка при конвертации полиса в json",e);
-        }
-    }
 
     RetryableTaskDTO toRetryableTaskDTO(RetryableTask retryableTask);
 
@@ -37,13 +26,4 @@ public interface RetryableTaskMapper {
 
     @Mapping(source = "payload", target = ".", qualifiedByName = "convertJsonToPolicyDTO")
     PolicyDTO toPolicyDTOFromPayloadOfRetryableTask(RetryableTaskDTO retryableTaskDTO);
-
-    @Named("convertJsonToPolicyDTO")
-    default PolicyDTO convertJsonToPolicyDTO(String json){
-        try {
-            return OBJECT_MAPPER.readValue(json, PolicyDTO.class);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Ошибка парсинга PolicyDTO из JSON", e);
-        }
-    }
 }

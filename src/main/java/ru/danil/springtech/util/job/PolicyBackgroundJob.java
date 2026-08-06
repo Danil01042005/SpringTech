@@ -30,39 +30,36 @@ public class PolicyBackgroundJob {
     private final MedicineIntegrationService medicineIntegrationService;
     private final JobScheduler jobScheduler;
     private final PersonService personService;
-    private final PersonBackgroundJob personBackgroundJob;
-    private final RetryableTaskService retryableTaskService;
     private int amountToAddMinutes;
 
     public void scheduleCreatePolicyWithBudget(PersonDTO personDTO, PolicyDTO policyDTO) {
         policyDTO.setPersonId(personDTO.getId());
         jobScheduler.schedule(
                 Instant.now().plus(amountToAddMinutes, ChronoUnit.MINUTES),
-                () -> createPolicyWithBudget(personDTO, policyDTO, personDTO.getId())
+                () -> createPolicyWithBudget(personDTO, policyDTO)
         );
     }
 
     @Job(name = "Create policy for person %0")
-    public void createPolicyWithBudget(PersonDTO personDTO, PolicyDTO policyDTO, UUID retryableTaskId) {
+    public void createPolicyWithBudget(PersonDTO personDTO, PolicyDTO policyDTO) {
         UUID personId = personDTO.getId();
         try {
-            executePolicyCreation(personDTO, policyDTO, retryableTaskId);
+            executePolicyCreation(personDTO, policyDTO);
         } catch (Exception e) {
-            handleFailure(e, personId, retryableTaskId);
+            handleFailure(e, personId);
         }
     }
 
-    private void executePolicyCreation(PersonDTO personDTO, PolicyDTO policyDTO, UUID retryableTaskId) {
+    private void executePolicyCreation(PersonDTO personDTO, PolicyDTO policyDTO) {
         UUID personId = personDTO.getId();
         checkBudget(personDTO,policyDTO);
         medicineIntegrationService.createPolicyWithoutRetry(personId, policyDTO);
-        handleSuccess(personId, retryableTaskId);
+        handleSuccess(personId);
     }
 
-    private void handleSuccess(UUID personId, UUID retryableTaskId) {
+    private void handleSuccess(UUID personId) {
         retryBudgetService.successRequest();
         personService.updatePolicyStatus(personId, PolicyStatus.COMPLETED);
-        retryableTaskService.updateStatusById(retryableTaskId, RetryableTaskStatus.SUCCESS);
         log.debug("Фоновое создание полиса успешно для человека {}", personId);
     }
 
@@ -73,8 +70,7 @@ public class PolicyBackgroundJob {
         }
     }
 
-    private void handleFailure(Exception e, UUID personId, UUID retryableTaskId) {
-        retryableTaskService.updateStatusById(retryableTaskId, RetryableTaskStatus.PENDING);
+    private void handleFailure(Exception e, UUID personId) {
         switch (e) {
             case FeignException f -> handleFeignException(f, personId);
             case PolicyCreationException p -> handlePolicyCreationException(p, personId);

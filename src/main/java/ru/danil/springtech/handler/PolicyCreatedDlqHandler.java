@@ -24,17 +24,16 @@ public class PolicyCreatedDlqHandler {
     private final ActorService actorService;
 
     @KafkaListener(topics = "${kafka-listener.topic-name-in-policy-created-dlq-handler}")
-    public void handle(List<RetryableTaskDTO> retryableTaskDTOS, Acknowledgment ack) {
-    for (RetryableTaskDTO retryableTaskDTO : retryableTaskDTOS) {
+    public void handle(RetryableTaskDTO retryableTaskDTO, Acknowledgment ack) {
         try {
             PolicyDTO policyDTO = retryableTaskMapper.toPolicyDTOFromPayloadOfRetryableTask(retryableTaskDTO);
             UUID actorId = policyDTO.getActorId();
             actorService.deleteActorById(actorId);
-            retryableTaskService.updateStatusById(retryableTaskDTO.getId(), RetryableTaskStatus.DELETE_ACTOR_COMPENSATED);
+            retryableTaskService.updateStatusById(retryableTaskDTO.getId(), RetryableTaskStatus.DELETE_ACTOR_COMPENSATED, RetryableTaskStatus.SEND_TO_KAFKA);
         } catch (Exception e) {
+            retryableTaskService.updateStatusById(retryableTaskDTO.getId(), RetryableTaskStatus.FAILED, RetryableTaskStatus.SEND_TO_KAFKA);
             log.error("Ошибка компенсации задачи {}", retryableTaskDTO.getId(), e);
         }
-    }
     ack.acknowledge();
     }
 }

@@ -45,6 +45,12 @@ public class RetryableTask {
     @Column(name = "retry_time")
     private Instant retryTime;
 
+    @Column(name = "attempts")
+    private Integer attempts;
+
+    @Column(nullable = true)
+    private Instant leaseExpiresAt;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

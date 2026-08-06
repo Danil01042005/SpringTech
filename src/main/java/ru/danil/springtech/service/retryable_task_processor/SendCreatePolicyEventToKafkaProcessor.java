@@ -22,10 +22,14 @@ public class SendCreatePolicyEventToKafkaProcessor implements RetryableTaskProce
 
     @Override
     public void processRetryableTasks(List<RetryableTaskDTO> tasks) {
-        Map<RetryableTaskDTO, CompletableFuture<SendResult<UUID, RetryableTaskDTO>>> futureMap = sendTasksToKafka(tasks);
-        List<UUID> successIds = collectSuccessfulTaskIds(futureMap);
-        if(!successIds.isEmpty()) {
-            retryableTaskService.updateStatusByIds(successIds, RetryableTaskStatus.SEND_TO_KAFKA);
+        try {
+            Map<RetryableTaskDTO, CompletableFuture<SendResult<UUID, RetryableTaskDTO>>> futureMap = sendTasksToKafka(tasks);
+            List<UUID> successIds = collectSuccessfulTaskIds(futureMap);
+            if(!successIds.isEmpty()) {
+                retryableTaskService.updateStatusByIds(successIds, RetryableTaskStatus.SEND_TO_KAFKA, RetryableTaskStatus.PENDING);
+            }
+        } catch (Exception e) {
+            tasks.forEach(task -> retryableTaskService.reschedule(task.getId()));
         }
     }
 
@@ -54,9 +58,11 @@ public class SendCreatePolicyEventToKafkaProcessor implements RetryableTaskProce
     }
 
     private void addIfSuccess(CompletableFuture<SendResult<UUID, RetryableTaskDTO>> result, List<UUID> ids, RetryableTaskDTO retryableTaskDTO) {
+        UUID retryableTaskId = retryableTaskDTO.getId();
         if(!result.isCompletedExceptionally()) {
-            ids.add(retryableTaskDTO.getId());
+            ids.add(retryableTaskId);
         } else {
+            retryableTaskService.reschedule(retryableTaskId);
             log.warn("Не удалось отправить задачу {}", retryableTaskDTO);
         }
     }

@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * Gets or Sets RetryableTaskStatus
  */
 
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-07-30T13:31:20.241753100+03:00[Europe/Moscow]")
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-08-06T12:04:54.745555900+03:00[Europe/Moscow]")
 public enum RetryableTaskStatus {
   
   SEND_TO_KAFKA("SEND_TO_KAFKA"),
@@ -28,7 +28,9 @@ public enum RetryableTaskStatus {
   
   SUCCESS("SUCCESS"),
   
-  DELETE_ACTOR_COMPENSATED("DELETE_ACTOR_COMPENSATED");
+  DELETE_ACTOR_COMPENSATED("DELETE_ACTOR_COMPENSATED"),
+  
+  FAILED("FAILED");
 
   private String value;
 

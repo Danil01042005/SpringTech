@@ -20,6 +20,8 @@ components:
         retryTime:
           type: string
           format: date-time
+        attempts:
+          type: integer
 
     RetryableTaskType:
       type: string
@@ -27,4 +29,4 @@ components:
 
     RetryableTaskStatus:
       type: string
-      enum: [ SEND_TO_KAFKA, PENDING, SUCCESS, DELETE_ACTOR_COMPENSATED]
+      enum: [ SEND_TO_KAFKA, PENDING, SUCCESS, DELETE_ACTOR_COMPENSATED, FAILED]

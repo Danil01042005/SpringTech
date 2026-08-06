@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.danil.springtech.config.RetryableTaskProperties;
 import ru.danil.springtech.dto.PolicyDTO;
+import ru.danil.springtech.exception.ObjectNotFoundException;
 import ru.danil.springtech.kafka.dto.RetryableTaskDTO;
 import ru.danil.springtech.kafka.dto.RetryableTaskStatus;
 import ru.danil.springtech.kafka.dto.RetryableTaskType;
@@ -18,6 +19,7 @@ import ru.danil.springtech.repository.RetryableTaskRepository;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -44,18 +46,53 @@ public class RetryableTaskService {
         List<RetryableTask> retryableTasks = retryableTaskRepository.findRetryableTasks(type, currentTime, RetryableTaskStatus.PENDING , pageable);
 
         for (RetryableTask retryableTask : retryableTasks) {
-            retryableTask.setRetryTime(currentTime.plus(Duration.ofSeconds(properties.getTimeoutInSecond())));
+            retryableTask.setLeaseExpiresAt(currentTime.plus(Duration.ofSeconds(properties.getProcessingLeaseSeconds())));
         }
         return retryableTasks.stream().map(retryableTaskMapper::toRetryableTaskDTO).toList();
     }
 
     @Transactional
-    public void updateStatusByIds(List<UUID> ids, RetryableTaskStatus status) {
-        retryableTaskRepository.updateStatusByIds(ids, status);
+    public void updateStatusByIds(List<UUID> ids, RetryableTaskStatus status, RetryableTaskStatus expectedStatus) {
+        retryableTaskRepository.updateStatusByIds(ids, status, expectedStatus);
     }
 
     @Transactional
-    public void updateStatusById(UUID id, RetryableTaskStatus status) {
-        retryableTaskRepository.updateStatusById(id, status);
+    public void updateStatusById(UUID id, RetryableTaskStatus status, RetryableTaskStatus expectedRetryableTaskStatus) {
+        retryableTaskRepository.updateStatusById(id, status, expectedRetryableTaskStatus);
+    }
+
+    @Transactional
+    public void reschedule(UUID retryableTaskId) {
+        RetryableTask retryableTask = returnRetryableTaskOrThrow(retryableTaskRepository.findById(retryableTaskId), retryableTaskId);
+        int nextAttempts = retryableTask.getAttempts() + 1;
+        if(nextAttempts > properties.getMaxAttempts()) {
+            retryableTask.setStatus(RetryableTaskStatus.FAILED);
+        } else {
+            applyRetry(retryableTask, nextAttempts);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public RetryableTaskDTO findRetryableTaskById(UUID retryableTaskId) {
+        RetryableTask retryableTask = retryableTaskRepository.findById(retryableTaskId).orElseThrow( () -> {
+            log.error("Задача с таким айди не найдена: {}", retryableTaskId);
+            return new ObjectNotFoundException("Задача с таким айди не найдена: " + retryableTaskId);
+        });
+        log.debug("Найден актер: {}", retryableTaskId);
+        return retryableTaskMapper.toRetryableTaskDTO(retryableTask);
+    }
+
+    private RetryableTask returnRetryableTaskOrThrow(Optional<RetryableTask> retryableTask, UUID retryableTaskId) {
+        return retryableTask.orElseThrow(() -> {
+            log.error("Человек с таким айди не найден {}", retryableTaskId);
+            return new ObjectNotFoundException("Человек с таким айди не найден " + retryableTaskId);
+        });
+    }
+
+    private void applyRetry(RetryableTask retryableTask, Integer nextAttempts) {
+        retryableTask.setAttempts(nextAttempts);
+        retryableTask.setStatus(RetryableTaskStatus.PENDING);
+        retryableTask.setRetryTime(Instant.now().plus(Duration.ofSeconds(properties.getRetryDelaySeconds())));
+        retryableTask.setLeaseExpiresAt(null);
     }
 }

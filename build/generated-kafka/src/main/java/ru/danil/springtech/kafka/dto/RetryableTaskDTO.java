@@ -22,7 +22,7 @@ import jakarta.annotation.Generated;
  * RetryableTaskDTO
  */
 
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-07-23T11:46:01.451727700+03:00[Europe/Moscow]")
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-08-06T12:04:54.745555900+03:00[Europe/Moscow]")
 public class RetryableTaskDTO {
 
   private UUID id;
@@ -33,6 +33,8 @@ public class RetryableTaskDTO {
 
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
   private OffsetDateTime retryTime;
+
+  private Integer attempts;
 
   public RetryableTaskDTO() {
     super();
@@ -126,6 +128,26 @@ public class RetryableTaskDTO {
     this.retryTime = retryTime;
   }
 
+  public RetryableTaskDTO attempts(Integer attempts) {
+    this.attempts = attempts;
+    return this;
+  }
+
+  /**
+   * Get attempts
+   * @return attempts
+  */
+  
+  @Schema(name = "attempts", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  @JsonProperty("attempts")
+  public Integer getAttempts() {
+    return attempts;
+  }
+
+  public void setAttempts(Integer attempts) {
+    this.attempts = attempts;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -138,12 +160,13 @@ public class RetryableTaskDTO {
     return Objects.equals(this.id, retryableTaskDTO.id) &&
         Objects.equals(this.type, retryableTaskDTO.type) &&
         Objects.equals(this.payload, retryableTaskDTO.payload) &&
-        Objects.equals(this.retryTime, retryableTaskDTO.retryTime);
+        Objects.equals(this.retryTime, retryableTaskDTO.retryTime) &&
+        Objects.equals(this.attempts, retryableTaskDTO.attempts);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, type, payload, retryTime);
+    return Objects.hash(id, type, payload, retryTime, attempts);
   }
 
   @Override
@@ -154,6 +177,7 @@ public class RetryableTaskDTO {
     sb.append("    type: ").append(toIndentedString(type)).append("\n");
     sb.append("    payload: ").append(toIndentedString(payload)).append("\n");
     sb.append("    retryTime: ").append(toIndentedString(retryTime)).append("\n");
+    sb.append("    attempts: ").append(toIndentedString(attempts)).append("\n");
     sb.append("}");
     return sb.toString();
   }

@@ -4,12 +4,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import ru.danil.springtech.kafka.dto.RetryableTaskDTO;
+import ru.danil.springtech.kafka.dto.RetryableTaskStatus;
 import ru.danil.springtech.kafka.dto.RetryableTaskType;
 import ru.danil.springtech.service.RetryableTaskService;
 import ru.danil.springtech.service.retryable_task_processor.RetryableTaskProcessor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component

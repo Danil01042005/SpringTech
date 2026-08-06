@@ -112,7 +112,9 @@ kafka-topic:
 
 retryable-task-service:
   limit: 100
-  timeout-in-second: 36000
+  retry-delay-seconds: 36000
+  processing-lease-seconds: 900
+  max-attempts: 3
 
 kafka-listener:
   topic-name-in-policy-created-dlq-handler: "policy-created-dlq"

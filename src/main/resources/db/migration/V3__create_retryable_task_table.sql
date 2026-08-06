@@ -4,6 +4,8 @@ CREATE TABLE IF NOT EXISTS retryable_task(
     type varchar(15),
     status varchar(10),
     retry_time TIMESTAMP WITH TIME ZONE,
+    attempts INTEGER,
+    lease_expires_at TIMESTAMP,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     is_deleted BOOLEAN DEFAULT FALSE
