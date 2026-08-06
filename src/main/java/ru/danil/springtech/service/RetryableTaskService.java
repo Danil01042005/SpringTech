@@ -72,16 +72,6 @@ public class RetryableTaskService {
         }
     }
 
-    @Transactional(readOnly = true)
-    public RetryableTaskDTO findRetryableTaskById(UUID retryableTaskId) {
-        RetryableTask retryableTask = retryableTaskRepository.findById(retryableTaskId).orElseThrow( () -> {
-            log.error("Задача с таким айди не найдена: {}", retryableTaskId);
-            return new ObjectNotFoundException("Задача с таким айди не найдена: " + retryableTaskId);
-        });
-        log.debug("Найден актер: {}", retryableTaskId);
-        return retryableTaskMapper.toRetryableTaskDTO(retryableTask);
-    }
-
     private RetryableTask returnRetryableTaskOrThrow(Optional<RetryableTask> retryableTask, UUID retryableTaskId) {
         return retryableTask.orElseThrow(() -> {
             log.error("Человек с таким айди не найден {}", retryableTaskId);
