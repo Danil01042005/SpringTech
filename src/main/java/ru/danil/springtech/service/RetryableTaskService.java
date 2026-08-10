@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.danil.springtech.config.RetryableTaskProperties;
 import ru.danil.springtech.dto.PolicyDTO;
-import ru.danil.springtech.exception.ObjectNotFoundException;
 import ru.danil.springtech.kafka.dto.RetryableTaskDTO;
 import ru.danil.springtech.kafka.dto.RetryableTaskStatus;
 import ru.danil.springtech.kafka.dto.RetryableTaskType;
@@ -19,7 +18,6 @@ import ru.danil.springtech.repository.RetryableTaskRepository;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -53,7 +51,12 @@ public class RetryableTaskService {
 
     @Transactional
     public void updateStatusByIds(List<UUID> ids, RetryableTaskStatus status, RetryableTaskStatus expectedStatus) {
-        retryableTaskRepository.updateStatusByIds(ids, status, expectedStatus);
+        int updated = retryableTaskRepository.updateStatusByIds(ids, status, expectedStatus);
+        if (updated != ids.size()) {
+            log.warn("Обновлено статусов {} из {} задач (ожидаемый статус: {})", updated, ids.size(), expectedStatus);
+        } else {
+            log.debug("Успешно обновлены статусы {} задач", ids.size());
+        }
     }
 
     @Transactional
@@ -63,26 +66,19 @@ public class RetryableTaskService {
 
     @Transactional
     public void reschedule(UUID retryableTaskId) {
-        RetryableTask retryableTask = returnRetryableTaskOrThrow(retryableTaskRepository.findById(retryableTaskId), retryableTaskId);
-        int nextAttempts = retryableTask.getAttempts() + 1;
-        if(nextAttempts > properties.getMaxAttempts()) {
-            retryableTask.setStatus(RetryableTaskStatus.FAILED);
+        Instant nextRetry = Instant.now().plus(Duration.ofSeconds(properties.getRetryDelaySeconds()));
+        int updated = retryableTaskRepository.incrementAttemptsAndReschedule(
+                retryableTaskId,
+                nextRetry,
+                RetryableTaskStatus.FAILED,
+                properties.getMaxAttempts(),
+                RetryableTaskStatus.PENDING,
+                RetryableTaskStatus.PENDING
+        );
+        if (updated == 0) {
+            log.warn("Задача {} уже не в статусе PENDING или не найдена", retryableTaskId);
         } else {
-            applyRetry(retryableTask, nextAttempts);
+            log.info("Задача {} перепланирована (attempts увеличено)", retryableTaskId);
         }
-    }
-
-    private RetryableTask returnRetryableTaskOrThrow(Optional<RetryableTask> retryableTask, UUID retryableTaskId) {
-        return retryableTask.orElseThrow(() -> {
-            log.error("Человек с таким айди не найден {}", retryableTaskId);
-            return new ObjectNotFoundException("Человек с таким айди не найден " + retryableTaskId);
-        });
-    }
-
-    private void applyRetry(RetryableTask retryableTask, Integer nextAttempts) {
-        retryableTask.setAttempts(nextAttempts);
-        retryableTask.setStatus(RetryableTaskStatus.PENDING);
-        retryableTask.setRetryTime(Instant.now().plus(Duration.ofSeconds(properties.getRetryDelaySeconds())));
-        retryableTask.setLeaseExpiresAt(null);
     }
 }

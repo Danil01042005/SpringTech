@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.danil.springtech.dto.ActorDTO;
 import ru.danil.springtech.dto.PolicyStatus;
 import ru.danil.springtech.kafka.dto.RetryableTaskType;
+import ru.danil.springtech.mapper.ActorMapper;
 
 @RequiredArgsConstructor
 @Service
@@ -15,22 +16,21 @@ import ru.danil.springtech.kafka.dto.RetryableTaskType;
 public class ActorCreationService {
     private final ActorService actorService;
     private final RetryableTaskService retryableTaskService;
+    private final ActorMapper actorMapper;
 
-    @Transactional
-    public ActorDTO createActor(ActorDTO actorDTO) {
-        ActorDTO saveCandidate = new ActorDTO();
-        BeanUtils.copyProperties(actorDTO, saveCandidate);
-        if (actorDTO.getPolicy() != null) {
-            saveCandidate.setPolicyStatus(PolicyStatus.IN_PROGRESS);
-        }
+    private ActorDTO createActor(ActorDTO actorDTO) {
+        ActorDTO saveCandidate = actorMapper.toActorDTO(actorMapper.toActor(actorDTO));
+        saveCandidate.setPolicyStatus(PolicyStatus.IN_PROGRESS);
         ActorDTO savedActorDTO = actorService.createActor(saveCandidate);
-        createRetryableTaskIfNeeded(saveCandidate);
+        retryableTaskService.createRetryableTask(saveCandidate.getPolicy(), RetryableTaskType.CREATED_MEDICINE_POLICY);
         return savedActorDTO;
     }
 
-    private void createRetryableTaskIfNeeded(ActorDTO actorDTO) {
-        if (actorDTO.getPolicy() != null) {
-            retryableTaskService.createRetryableTask(actorDTO.getPolicy(), RetryableTaskType.CREATED_MEDICINE_POLICY);
-        }
+    @Transactional
+    public ActorDTO create(ActorDTO request) {
+        return switch (request){
+            case ActorDTO a when a.getPolicy() != null -> createActor(request);
+            default -> actorService.createActor(request);
+        };
     }
 }

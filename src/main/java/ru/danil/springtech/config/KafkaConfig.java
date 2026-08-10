@@ -1,6 +1,7 @@
 package ru.danil.springtech.config;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -14,18 +15,16 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "kafka-topic")
 @Getter
 @Setter
+@RequiredArgsConstructor
 public class KafkaConfig {
-    private Integer partitions;
-    private Integer replicas;
-    private String minInsyncReplicas;
-    private String policyCreatedTopicName;
+    private final KafkaConfigProperties properties;
 
     @Bean
     NewTopic createTopic() {
-        return TopicBuilder.name(policyCreatedTopicName)
-                .partitions(partitions)
-                .replicas(replicas)
-                .configs(Map.of("min.insync.replicas", minInsyncReplicas))
+        return TopicBuilder.name(properties.getPolicyCreatedTopicName())
+                .partitions(properties.getPartitions())
+                .replicas(properties.getReplicas())
+                .configs(Map.of("min.insync.replicas", properties.getMinInsyncReplicas()))
                 .build();
     }
 }

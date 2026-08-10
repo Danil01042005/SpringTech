@@ -49,11 +49,13 @@ public interface RetryableTaskRepository extends CrudRepository<RetryableTask, U
 
     @Modifying
     @Query("""
-        UPDATE RetryableTask t
-        SET t.attempts = t.attempts + 1,
-        t.retryTime =: nextRetry
-        WHERE t.id =: id
-        """)
-    void incrementAttemptsAndReschedule(Instant nextRetry, UUID id);
-
+    UPDATE RetryableTask t
+    SET t.attempts = t.attempts + 1,
+        t.retryTime = CASE WHEN (t.attempts + 1) < :maxAttempts THEN :nextRetry ELSE t.retryTime END,
+        t.status = CASE WHEN (t.attempts + 1) >= :maxAttempts THEN :failedStatus ELSE :pendingStatus END,
+        t.leaseExpiresAt = NULL
+    WHERE t.id = :id
+      AND t.status = :expectedStatus
+    """)
+    int incrementAttemptsAndReschedule(UUID id, Instant nextRetry, RetryableTaskStatus failedStatus, int maxAttempts, RetryableTaskStatus pendingStatus, RetryableTaskStatus expectedStatus);
 }

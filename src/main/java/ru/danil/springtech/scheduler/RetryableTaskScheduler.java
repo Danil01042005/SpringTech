@@ -32,7 +32,7 @@ public class RetryableTaskScheduler {
         for (var entry : processorByType.entrySet()) {
             var taskType = entry.getKey();
             var processor = entry.getValue();
-            List<RetryableTaskDTO> tasks = retryableTaskService.getRetryableTasks(taskType);
+            var tasks = retryableTaskService.getRetryableTasks(taskType);
             if (tasks.isEmpty()) {
                 log.info("Нет задач для выполнения для типа : {}", taskType);
                 continue;
