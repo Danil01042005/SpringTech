@@ -20,11 +20,11 @@ public class RetryableTaskProperties {
 
     @NotNull
     @Min(1)
-    private int retryDelaySeconds;
+    private Integer retryDelaySeconds;
 
     @NotNull
     @Min(1)
-    private int processingLeaseSeconds;
+    private Integer processingLeaseSeconds;
 
     @NotNull
     @Min(1)

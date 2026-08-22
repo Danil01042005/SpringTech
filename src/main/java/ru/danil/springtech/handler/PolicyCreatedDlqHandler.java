@@ -30,10 +30,11 @@ public class PolicyCreatedDlqHandler {
             UUID actorId = policyDTO.getActorId();
             actorService.deleteActorById(actorId);
             retryableTaskService.updateStatusById(retryableTaskDTO.getId(), RetryableTaskStatus.DELETE_ACTOR_COMPENSATED, RetryableTaskStatus.SEND_TO_KAFKA);
+            ack.acknowledge();
         } catch (Exception e) {
             retryableTaskService.updateStatusById(retryableTaskDTO.getId(), RetryableTaskStatus.FAILED, RetryableTaskStatus.SEND_TO_KAFKA);
             log.error("Ошибка компенсации задачи {}", retryableTaskDTO.getId(), e);
+            throw e;
         }
-    ack.acknowledge();
     }
 }

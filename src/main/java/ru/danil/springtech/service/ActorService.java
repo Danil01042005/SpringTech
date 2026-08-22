@@ -5,8 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.danil.springtech.dto.ActorDTO;
-import ru.danil.springtech.dto.PolicyStatus;
-import ru.danil.springtech.kafka.dto.RetryableTaskType;
 import ru.danil.springtech.mapper.ActorMapper;
 import ru.danil.springtech.model.Actor;
 import ru.danil.springtech.repository.ActorRepository;
@@ -20,7 +18,6 @@ import java.util.*;
 public class ActorService {
     private final ActorRepository actorRepository;
     private final ActorMapper actorMapper;
-    private final RetryableTaskService retryableTaskService;
 
     @Transactional(readOnly = true)
     public ActorDTO getActorById(UUID id) {
@@ -39,7 +36,11 @@ public class ActorService {
 
     @Transactional
     public void deleteActorById(UUID id) {
-        actorRepository.deleteById(id);
+        actorRepository.findById(id).ifPresent(actor -> {
+            actorRepository.delete(actor);
+            log.debug("Актор {} удалён", id);
+        });
+        log.warn("Попытка удалить несуществующего актера актора {}", id);
     }
 
     @Transactional
