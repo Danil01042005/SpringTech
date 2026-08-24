@@ -8,9 +8,9 @@ import ru.danil.springtech.model.Passport;
 import ru.danil.springtech.model.Person;
 
 @Generated(
-    value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-07-31T14:44:54+0300",
-    comments = "version: 1.6.3, compiler: IncrementalProcessingEnvironment from gradle-language-java-9.4.1.jar, environment: Java 21.0.11 (Microsoft)"
+        value = "org.mapstruct.ap.MappingProcessor",
+        date = "2026-07-08T18:26:52+0300",
+        comments = "version: 1.6.3, compiler: IncrementalProcessingEnvironment from gradle-language-java-9.4.1.jar, environment: Java 21.0.11 (Microsoft)"
 )
 @Component
 public class PersonMapperImpl implements PersonMapper {
