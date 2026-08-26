@@ -8,7 +8,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 import ru.danil.springtech.api.ActorsAndFilmsApi;
 import ru.danil.springtech.dto.ActorDTO;
-import ru.danil.springtech.service.ActorCreationService;
 import ru.danil.springtech.service.ActorService;
 
 import java.util.UUID;
@@ -18,7 +17,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ActorController implements ActorsAndFilmsApi {
     private final ActorService actorService;
-    private final ActorCreationService actorCreationService;
 
     @Override
     public ResponseEntity<ActorDTO> actorUpdate(UUID id, ActorDTO updatedActorDTO) {
@@ -27,7 +25,7 @@ public class ActorController implements ActorsAndFilmsApi {
 
     @Override
     public ResponseEntity<ActorDTO> createActor(@Valid ActorDTO actorDTO) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(actorCreationService.create(actorDTO));
+        return ResponseEntity.status(HttpStatus.CREATED).body(actorService.create(actorDTO));
     }
 
     @Override

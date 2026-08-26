@@ -32,30 +32,47 @@ public interface RetryableTaskRepository extends CrudRepository<RetryableTask, U
     @Modifying
     @Query("""
             UPDATE RetryableTask t
-            SET t.status = :status
+            SET t.status = :status,
+                t.leaseToken = NULL,
+                t.leaseExpiresAt = NULL
             WHERE t.id IN :ids
               AND t.status = :expectedStatus
+              AND t.leaseToken = :leaseToken
             """)
-    int updateStatusByIds(List<UUID> ids, RetryableTaskStatus status,  RetryableTaskStatus expectedStatus);
+    int updateStatusByIds(List<UUID> ids, UUID leaseToken, RetryableTaskStatus status, RetryableTaskStatus expectedStatus);
 
     @Modifying
     @Query("""
             UPDATE RetryableTask t
-            SET t.status = :status
+            SET t.status = :status,
+                t.leaseToken = NULL,
+                t.leaseExpiresAt = NULL
             WHERE t.id = :id
               AND t.status = :expectedStatus
+              AND t.leaseToken = :leaseToken
             """)
-    int updateStatusById(UUID id, RetryableTaskStatus status, RetryableTaskStatus expectedStatus);
+    int updateStatusById(UUID id, UUID leaseToken, RetryableTaskStatus status, RetryableTaskStatus expectedStatus);
 
     @Modifying
     @Query("""
-    UPDATE RetryableTask t
-    SET t.attempts = t.attempts + 1,
-        t.retryTime = CASE WHEN (t.attempts + 1) < :maxAttempts THEN :nextRetry ELSE t.retryTime END,
-        t.status = CASE WHEN (t.attempts + 1) >= :maxAttempts THEN :failedStatus ELSE :pendingStatus END,
-        t.leaseExpiresAt = NULL
-    WHERE t.id = :id
-      AND t.status = :expectedStatus
-    """)
-    int incrementAttemptsAndReschedule(UUID id, Instant nextRetry, RetryableTaskStatus failedStatus, int maxAttempts, RetryableTaskStatus pendingStatus, RetryableTaskStatus expectedStatus);
+            UPDATE RetryableTask t
+            SET t.attempts = t.attempts + 1,
+                t.retryTime = CASE WHEN (t.attempts + 1) < :maxAttempts THEN :nextRetry ELSE t.retryTime END,
+                t.status = CASE WHEN (t.attempts + 1) >= :maxAttempts THEN :failedStatus ELSE :pendingStatus END,
+                t.leaseExpiresAt = NULL,
+                t.leaseToken = NULL
+            WHERE t.id = :id
+              AND t.status = :expectedStatus
+              AND t.leaseToken = :leaseToken
+            """)
+    int incrementAttemptsAndReschedule(UUID id, UUID leaseToken, Instant nextRetry, RetryableTaskStatus failedStatus, int maxAttempts, RetryableTaskStatus pendingStatus, RetryableTaskStatus expectedStatus);
+
+    @Modifying
+    @Query("""
+        UPDATE RetryableTask t
+        SET t.status = :status
+        WHERE t.id = :id
+          AND t.status = :expectedStatus
+        """)
+    int updateStatusByIdWithoutLease(UUID id, RetryableTaskStatus status, RetryableTaskStatus expectedStatus);
 }

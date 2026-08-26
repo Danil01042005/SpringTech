@@ -22,7 +22,7 @@ import jakarta.annotation.Generated;
  * RetryableTaskDTO
  */
 
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-08-06T12:04:54.745555900+03:00[Europe/Moscow]")
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-08-24T18:37:01.505470200+03:00[Europe/Moscow]")
 public class RetryableTaskDTO {
 
   private UUID id;
@@ -35,6 +35,8 @@ public class RetryableTaskDTO {
   private OffsetDateTime retryTime;
 
   private Integer attempts;
+
+  private UUID leaseToken;
 
   public RetryableTaskDTO() {
     super();
@@ -148,6 +150,26 @@ public class RetryableTaskDTO {
     this.attempts = attempts;
   }
 
+  public RetryableTaskDTO leaseToken(UUID leaseToken) {
+    this.leaseToken = leaseToken;
+    return this;
+  }
+
+  /**
+   * Get leaseToken
+   * @return leaseToken
+  */
+  @Valid 
+  @Schema(name = "leaseToken", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+  @JsonProperty("leaseToken")
+  public UUID getLeaseToken() {
+    return leaseToken;
+  }
+
+  public void setLeaseToken(UUID leaseToken) {
+    this.leaseToken = leaseToken;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -161,12 +183,13 @@ public class RetryableTaskDTO {
         Objects.equals(this.type, retryableTaskDTO.type) &&
         Objects.equals(this.payload, retryableTaskDTO.payload) &&
         Objects.equals(this.retryTime, retryableTaskDTO.retryTime) &&
-        Objects.equals(this.attempts, retryableTaskDTO.attempts);
+        Objects.equals(this.attempts, retryableTaskDTO.attempts) &&
+        Objects.equals(this.leaseToken, retryableTaskDTO.leaseToken);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, type, payload, retryTime, attempts);
+    return Objects.hash(id, type, payload, retryTime, attempts, leaseToken);
   }
 
   @Override
@@ -178,6 +201,7 @@ public class RetryableTaskDTO {
     sb.append("    payload: ").append(toIndentedString(payload)).append("\n");
     sb.append("    retryTime: ").append(toIndentedString(retryTime)).append("\n");
     sb.append("    attempts: ").append(toIndentedString(attempts)).append("\n");
+    sb.append("    leaseToken: ").append(toIndentedString(leaseToken)).append("\n");
     sb.append("}");
     return sb.toString();
   }

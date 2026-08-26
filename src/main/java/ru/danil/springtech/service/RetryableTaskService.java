@@ -2,7 +2,6 @@ package ru.danil.springtech.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.kafka.support.SendResult;
@@ -34,8 +33,7 @@ public class RetryableTaskService {
     private final RetryableTaskMapper retryableTaskMapper;
     private final RetryableTaskProperties retryableTaskProperties;
     private final KafkaProducerService kafkaProducerService;
-    @Lazy
-    private final RetryableTaskService self;
+    private final RetryableTaskStatusService taskStatusService;
 
     @Transactional
     public RetryableTaskDTO createRetryableTask(PolicyDTO policyDTO, RetryableTaskType type) {
@@ -50,46 +48,17 @@ public class RetryableTaskService {
     public List<RetryableTaskDTO> getRetryableTasks(RetryableTaskType type) {
         Instant currentTime = Instant.now();
         Pageable pageable = PageRequest.of(0, retryableTaskProperties.getLimit());
-        List<RetryableTask> retryableTasks = retryableTaskRepository.findRetryableTasks(type, currentTime, RetryableTaskStatus.PENDING , pageable);
+        List<RetryableTask> retryableTasks = retryableTaskRepository.findRetryableTasks(type, currentTime, RetryableTaskStatus.PENDING, pageable);
 
-        for (RetryableTask retryableTask : retryableTasks) {
-            retryableTask.setLeaseExpiresAt(currentTime.plus(Duration.ofSeconds(retryableTaskProperties.getProcessingLeaseSeconds())));
+        for (RetryableTask task : retryableTasks) {
+            task.setLeaseToken(UUID.randomUUID());
+            task.setLeaseExpiresAt(currentTime.plus(Duration.ofSeconds(retryableTaskProperties.getProcessingLeaseSeconds())));
         }
+        retryableTaskRepository.saveAll(retryableTasks);
         return retryableTasks.stream().map(retryableTaskMapper::toRetryableTaskDTO).toList();
     }
 
-    @Transactional
-    public void updateStatusByIds(List<UUID> ids, RetryableTaskStatus status, RetryableTaskStatus expectedStatus) {
-        int updated = retryableTaskRepository.updateStatusByIds(ids, status, expectedStatus);
-        if (updated != ids.size()) {
-            log.warn("Обновлено статусов {} из {} задач (ожидаемый статус: {})", updated, ids.size(), expectedStatus);
-        } else {
-            log.debug("Успешно обновлены статусы {} задач", ids.size());
-        }
-    }
 
-    @Transactional
-    public void updateStatusById(UUID id, RetryableTaskStatus status, RetryableTaskStatus expectedRetryableTaskStatus) {
-        retryableTaskRepository.updateStatusById(id, status, expectedRetryableTaskStatus);
-    }
-
-    @Transactional
-    public void reschedule(UUID retryableTaskId) {
-        Instant nextRetry = Instant.now().plus(Duration.ofSeconds(retryableTaskProperties.getRetryDelaySeconds()));
-        int updated = retryableTaskRepository.incrementAttemptsAndReschedule(
-                retryableTaskId,
-                nextRetry,
-                RetryableTaskStatus.FAILED,
-                retryableTaskProperties.getMaxAttempts(),
-                RetryableTaskStatus.PENDING,
-                RetryableTaskStatus.PENDING
-        );
-        if (updated == 0) {
-            log.warn("Задача {} уже не в статусе PENDING или не найдена", retryableTaskId);
-        } else {
-            log.info("Задача {} перепланирована (attempts увеличено)", retryableTaskId);
-        }
-    }
 
     private List<UUID> awaitAndCollectSuccessfulIds(Map<RetryableTaskDTO, CompletableFuture<SendResult<UUID, RetryableTaskDTO>>> futureMap) {
         List<UUID> successIds = new ArrayList<>();
@@ -101,7 +70,7 @@ public class RetryableTaskService {
                 successIds.add(task.getId());
             } catch (CompletionException e) {
                 log.error("Ошибка отправки задачи {}: {}", task.getId(), e.getCause(), e);
-                self.reschedule(task.getId());
+                taskStatusService.reschedule(task.getId(), task.getLeaseToken());
             }
         }
         return successIds;
@@ -110,8 +79,22 @@ public class RetryableTaskService {
     public void processRetryableTasks(List<RetryableTaskDTO> tasks, String topic) {
         Map<RetryableTaskDTO, CompletableFuture<SendResult<UUID, RetryableTaskDTO>>> futureMap = kafkaProducerService.sendTasksToKafka(tasks, topic);
         List<UUID> successIds = awaitAndCollectSuccessfulIds(futureMap);
-        if(!successIds.isEmpty()) {
-            self.updateStatusByIds(successIds, RetryableTaskStatus.SEND_TO_KAFKA, RetryableTaskStatus.PENDING);
+        if (!successIds.isEmpty()) {
+            for (RetryableTaskDTO task : tasks) {
+                if (successIds.contains(task.getId())) {
+                    taskStatusService.updateStatusById(task.getId(), task.getLeaseToken(), RetryableTaskStatus.SEND_TO_KAFKA, RetryableTaskStatus.PENDING);
+                }
+            }
+        }
+    }
+
+    @Transactional
+    public void updateStatusByIdWithoutLease(UUID id, RetryableTaskStatus status, RetryableTaskStatus expectedStatus) {
+        int updated = retryableTaskRepository.updateStatusByIdWithoutLease(id, status, expectedStatus);
+        if (updated == 0) {
+            log.warn("Не удалось обновить статус задачи {} (без проверки leaseToken): статус не совпадает", id);
+        } else {
+            log.debug("Статус задачи {} обновлён на {} (без проверки leaseToken)", id, status);
         }
     }
 }

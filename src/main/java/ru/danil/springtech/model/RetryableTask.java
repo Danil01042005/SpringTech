@@ -51,6 +51,9 @@ public class RetryableTask {
     @Column(nullable = true)
     private Instant leaseExpiresAt;
 
+    @Column(name = "lease_token")
+    private UUID leaseToken;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
