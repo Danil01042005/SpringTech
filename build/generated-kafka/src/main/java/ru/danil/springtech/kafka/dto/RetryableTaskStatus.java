@@ -1,4 +1,4 @@
-package ru.danil.springtech.dto;
+package ru.danil.springtech.kafka.dto;
 
 import java.net.URI;
 import java.util.Objects;
@@ -16,25 +16,25 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * Gets or Sets PolicyStatus
+ * Gets or Sets RetryableTaskStatus
  */
 
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-07-31T14:44:45.571404800+03:00[Europe/Moscow]")
-public enum PolicyStatus {
+@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2026-08-06T12:04:54.745555900+03:00[Europe/Moscow]")
+public enum RetryableTaskStatus {
   
-  IN_PROGRESS("IN_PROGRESS"),
+  SEND_TO_KAFKA("SEND_TO_KAFKA"),
   
   PENDING("PENDING"),
   
-  COMPLETED("COMPLETED"),
+  SUCCESS("SUCCESS"),
   
-  FAILED("FAILED"),
+  DELETE_ACTOR_COMPENSATED("DELETE_ACTOR_COMPENSATED"),
   
-  NOT_FOUND("NOT_FOUND");
+  FAILED("FAILED");
 
   private String value;
 
-  PolicyStatus(String value) {
+  RetryableTaskStatus(String value) {
     this.value = value;
   }
 
@@ -49,8 +49,8 @@ public enum PolicyStatus {
   }
 
   @JsonCreator
-  public static PolicyStatus fromValue(String value) {
-    for (PolicyStatus b : PolicyStatus.values()) {
+  public static RetryableTaskStatus fromValue(String value) {
+    for (RetryableTaskStatus b : RetryableTaskStatus.values()) {
       if (b.value.equals(value)) {
         return b;
       }

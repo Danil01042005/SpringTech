@@ -1,12 +1,11 @@
 package ru.danil.springtech.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+import ru.danil.springtech.dto.PolicyStatus;
+import ru.danil.springtech.util.converter.PolicyStatusConverter;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,6 +14,7 @@ import java.util.UUID;
 @Entity
 @Setter
 @Getter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @SQLDelete(sql = "UPDATE test.actors SET is_deleted = true WHERE id = ?")
@@ -42,6 +42,10 @@ public class Actor {
     @Column(name = "is_deleted")
     private Boolean isDeleted = false;
 
+    @Convert(converter = PolicyStatusConverter.class)
+    @Column(name = "policy_status")
+    private PolicyStatus policyStatus;
+
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "actors_movies",
@@ -61,15 +65,4 @@ public class Actor {
         this.updatedAt = LocalDateTime.now();
     }
 
-    @Override
-    public String toString() {
-        return "Actor{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", age=" + age +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                ", isDeleted=" + isDeleted +
-                '}';
-    }
 }

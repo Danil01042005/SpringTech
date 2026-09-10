@@ -12,6 +12,7 @@ import ru.danil.springtech.service.PersonService;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -23,23 +24,17 @@ public class PersonBackgroundJob {
     private int amountToAddMinutes;
 
     @Job(name = "Delete local person %0", retries = 0)
-    public void deleteLocalPersonJob(PersonDTO personDTO) {
+    public void deleteLocalPersonJob(UUID personId) {
         try {
-            personService.deletePersonById(personDTO.getId());
-            log.debug("Джоба локального удаления выполнилась с успехом {}", personDTO.getId());
+            personService.deletePersonById(personId);
+            log.debug("Джоба локального удаления выполнилась с успехом {}", personId);
         } catch (Exception e) {
-            log.error("Джоба локального удаления упала {}: {}", personDTO, e.getMessage());
+            log.error("Джоба локального удаления упала {}: {}", personId, e.getMessage());
             throw new CompensationFailedException("Джоба локального удаления упала");
         }
     }
 
-    public void compensateDeleteLocalPerson(PersonDTO personDTO) {
-        try {
-            personService.deletePersonById(personDTO.getId());
-            log.debug("Успешно удален человек: {}", personDTO.toString());
-        } catch (Exception e) {
-            log.warn("Компенсация не удалась для человека {}, создаем джобу: {}", personDTO.toString(), e.getMessage());
-            jobScheduler.schedule(Instant.now().plus(amountToAddMinutes, ChronoUnit.MINUTES), () -> deleteLocalPersonJob(personDTO));
-        }
+    public void compensateDeleteLocalPersonHandleFailure(UUID personId) {
+            jobScheduler.schedule(Instant.now().plus(amountToAddMinutes, ChronoUnit.MINUTES), () -> deleteLocalPersonJob(personId));
     }
 }

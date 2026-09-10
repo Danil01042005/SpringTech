@@ -25,7 +25,7 @@ public class ActorController implements ActorsAndFilmsApi {
 
     @Override
     public ResponseEntity<ActorDTO> createActor(@Valid ActorDTO actorDTO) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(actorService.createActor(actorDTO));
+        return ResponseEntity.status(HttpStatus.CREATED).body(actorService.create(actorDTO));
     }
 
     @Override

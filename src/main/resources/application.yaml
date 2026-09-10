@@ -20,6 +20,30 @@ spring:
     default-schema: test
     create-schemas: true
 
+  kafka:
+    bootstrap-servers: kafka:9092
+    producer:
+      key-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+        delivery.timeout.ms: 15000
+    consumer:
+      max-poll-records: 100
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "ru.danil.springtech.kafka.dto"
+        spring.json.value.default.type: "ru.danil.springtech.kafka.dto.RetryableTaskDTO"
+      enable-auto-commit: false
+      group-id: springtech-service-group
+    listener:
+      type: single
+      ack-mode: manual
+
+
   data:
     redis:
       host: redis
@@ -80,5 +104,20 @@ jobrunr:
   jobs:
     default-number-of-retries: 0
 
-scheduler-config:
-  delay: 300000
+kafka-topic:
+  policy-created-topic-name: "policy-created-topic"
+  minInsyncReplicas: "1"
+  partitions: 3
+  replicas: 1
+
+retryable-task-service:
+  limit: 100
+  retry-delay-seconds: 36000
+  processing-lease-seconds: 900
+  max-attempts: 3
+
+kafka-listener:
+  topic-name-in-policy-created-dlq-handler: "policy-created-dlq"
+
+retryable-task-scheduler:
+  fixed-rate: 5000

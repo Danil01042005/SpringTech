@@ -8,12 +8,14 @@ import org.jobrunr.scheduling.JobScheduler;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import ru.danil.springtech.dto.PolicyStatus;
+import ru.danil.springtech.kafka.dto.RetryableTaskStatus;
 import ru.danil.springtech.exception.PolicyCreationException;
 import ru.danil.springtech.service.RetryBudgetService;
 import ru.danil.springtech.dto.PersonDTO;
 import ru.danil.springtech.dto.PolicyDTO;
 import ru.danil.springtech.service.MedicineIntegrationService;
 import ru.danil.springtech.service.PersonService;
+import ru.danil.springtech.service.RetryableTaskService;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -28,7 +30,6 @@ public class PolicyBackgroundJob {
     private final MedicineIntegrationService medicineIntegrationService;
     private final JobScheduler jobScheduler;
     private final PersonService personService;
-    private final PersonBackgroundJob personBackgroundJob;
     private int amountToAddMinutes;
 
     public void scheduleCreatePolicyWithBudget(PersonDTO personDTO, PolicyDTO policyDTO) {
@@ -45,7 +46,6 @@ public class PolicyBackgroundJob {
         try {
             executePolicyCreation(personDTO, policyDTO);
         } catch (Exception e) {
-            personBackgroundJob.compensateDeleteLocalPerson(personDTO);
             handleFailure(e, personId);
         }
     }
@@ -80,20 +80,13 @@ public class PolicyBackgroundJob {
 
     private void handlePolicyCreationException(PolicyCreationException e, UUID personId) {
         log.error("Ошибка создания полиса для {}: {}", personId, e.getMessage());
-        markPolicyStatusFailed(personId);
     }
 
     private void handleFeignException(FeignException e, UUID personId){
         log.error("Ошибка MedicineService для {}: статус {}", personId, e.status());
-        markPolicyStatusFailed(personId);
-    }
-
-    private void markPolicyStatusFailed(UUID personId) {
-        personService.updatePolicyStatus(personId, PolicyStatus.FAILED);
     }
 
     private void handleUnexpectedException(Exception e, UUID personId) {
         log.error("Неожиданная ошибка при создании полиса для {}", personId, e);
-        markPolicyStatusFailed(personId);
     }
 }

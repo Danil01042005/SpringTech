@@ -1,18 +1,17 @@
 package ru.danil.springtech.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import ru.danil.springtech.dto.PolicyStatus;
+import ru.danil.springtech.util.converter.PolicyStatusConverter;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
+@ToString
 @Getter
 @Setter
 @AllArgsConstructor
@@ -45,7 +44,7 @@ public class Person {
     @OneToOne(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
     private Passport passport;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = PolicyStatusConverter.class)
     @Column(name = "policy_status")
     private PolicyStatus policyStatus;
 
@@ -64,17 +63,4 @@ public class Person {
         this.updatedAt = LocalDateTime.now();
     }
 
-    @Override
-    public String toString() {
-        return "Person{" +
-                "id=" + id +
-                ", fullName='" + fullName + '\'' +
-                ", age=" + age +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                ", isDeleted=" + isDeleted +
-                ", passport=" + passport +
-                ", policyStatus=" + policyStatus +
-                '}';
-    }
 }

@@ -23,7 +23,7 @@ public class PersonController implements PersonAndPassportApi {
     @Override
     public ResponseEntity<PersonDTO> createPerson(@Valid PersonDTO personDTO) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                             .body(personSagaOrchestrator.create(personDTO));
+                .body(personSagaOrchestrator.create(personDTO));
     }
 
     @Override

@@ -11,7 +11,7 @@ import ru.danil.springtech.model.Movie;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-07-08T18:26:53+0300",
+    date = "2026-07-31T14:44:53+0300",
     comments = "version: 1.6.3, compiler: IncrementalProcessingEnvironment from gradle-language-java-9.4.1.jar, environment: Java 21.0.11 (Microsoft)"
 )
 @Component
@@ -25,9 +25,11 @@ public class ActorMapperImpl implements ActorMapper {
 
         ActorDTO actorDTO = new ActorDTO();
 
+        actorDTO.setId( actor.getId() );
         actorDTO.setName( actor.getName() );
         actorDTO.setAge( actor.getAge() );
         actorDTO.setMovies( movieListToMovieDTOList( actor.getMovies() ) );
+        actorDTO.setPolicyStatus( actor.getPolicyStatus() );
 
         return actorDTO;
     }
@@ -40,10 +42,12 @@ public class ActorMapperImpl implements ActorMapper {
 
         Actor actor = new Actor();
 
+        actor.setId( actorDTO.getId() );
         actor.setName( actorDTO.getName() );
         if ( actorDTO.getAge() != null ) {
             actor.setAge( actorDTO.getAge() );
         }
+        actor.setPolicyStatus( actorDTO.getPolicyStatus() );
         actor.setMovies( movieDTOListToMovieList( actorDTO.getMovies() ) );
 
         return actor;
@@ -55,10 +59,12 @@ public class ActorMapperImpl implements ActorMapper {
             return;
         }
 
+        actor.setId( updateActorDto.getId() );
         actor.setName( updateActorDto.getName() );
         if ( updateActorDto.getAge() != null ) {
             actor.setAge( updateActorDto.getAge() );
         }
+        actor.setPolicyStatus( updateActorDto.getPolicyStatus() );
         if ( actor.getMovies() != null ) {
             List<Movie> list = movieDTOListToMovieList( updateActorDto.getMovies() );
             if ( list != null ) {
